@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   FlatList,
   Dimensions,
+  ScrollView,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Screen } from '@/components/Screen';
@@ -138,7 +139,11 @@ export default function HomePage() {
       backgroundColor="#0A0A0F"
       statusBarStyle="light"
     >
-      <View style={[styles.container, { paddingTop: insets.top + 20 }]}>
+      <ScrollView
+        style={[styles.container, { paddingTop: insets.top + 20 }]}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 40 }}
+      >
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerTop}>
@@ -263,7 +268,7 @@ export default function HomePage() {
             </View>
           </View>
         </View>
-      </View>
+      </ScrollView>
     </Screen>
   );
 }
