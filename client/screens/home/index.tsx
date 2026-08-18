@@ -163,7 +163,7 @@ export default function HomePage() {
             <Text style={styles.searchIcon}>⌕</Text>
             <TextInput
               style={styles.searchInput}
-              placeholder="输入股票名称，如：贵州茅台"
+              placeholder="输入股票名称或代码，如：贵州茅台 / 600519"
               placeholderTextColor="#555570"
               value={searchText}
               onChangeText={setSearchText}

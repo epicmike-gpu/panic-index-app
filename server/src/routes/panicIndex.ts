@@ -1,6 +1,7 @@
 import { Router } from "express";
 import type { Request, Response } from "express";
 import { analyzePanicIndex } from "../services/panicIndexService.js";
+import { getStockNameByCode, isStockCode } from "../services/stockLookupService.js";
 import { HeaderUtils } from "coze-coding-dev-sdk";
 
 const router = Router();
@@ -9,11 +10,27 @@ const router = Router();
 // Body: { stockName: string, stockCode?: string, market?: number }
 router.post("/analyze", async (req: Request, res: Response) => {
   try {
-    const { stockName, stockCode, market } = req.body;
+    let { stockName, stockCode, market } = req.body;
+
+    // 如果输入的是股票代码，自动转换为股票名称
+    if (isStockCode(stockName)) {
+      stockCode = stockName;
+      // 根据股票代码判断市场：6 开头为上海 (1)，其他为深圳 (0)
+      market = stockName.startsWith('6') ? 1 : 0;
+      stockName = await getStockNameByCode(stockCode, market);
+      
+      if (!stockName) {
+        res.status(400).json({
+          error: "无法识别该股票代码",
+          code: "INVALID_STOCK_CODE",
+        });
+        return;
+      }
+    }
 
     if (!stockName || typeof stockName !== "string" || stockName.trim().length === 0) {
       res.status(400).json({
-        error: "请提供股票名称",
+        error: "请提供股票名称或代码",
         code: "INVALID_INPUT",
       });
       return;
