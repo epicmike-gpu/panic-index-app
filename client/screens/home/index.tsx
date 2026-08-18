@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   FlatList,
   Dimensions,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Screen } from '@/components/Screen';
 import { useSafeRouter } from '@/hooks/useSafeRouter';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -26,11 +27,60 @@ const HOT_STOCKS = [
   { name: '药明康德', code: '603259' },
 ];
 
+const STORAGE_KEY = 'search_history';
+const MAX_HISTORY = 10;
+
+interface SearchHistoryItem {
+  name: string;
+  code?: string;
+  market?: number;
+  timestamp: number;
+}
+
 export default function HomePage() {
   const [searchText, setSearchText] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
   const router = useSafeRouter();
   const insets = useSafeAreaInsets();
+
+  // Load search history on mount
+  useEffect(() => {
+    loadSearchHistory();
+  }, []);
+
+  const loadSearchHistory = async () => {
+    try {
+      const stored = await AsyncStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        setSearchHistory(JSON.parse(stored));
+      }
+    } catch (error) {
+      console.error('Failed to load search history:', error);
+    }
+  };
+
+  const saveSearchHistory = async (item: SearchHistoryItem) => {
+    try {
+      const updated = [
+        item,
+        ...searchHistory.filter((h) => h.name !== item.name),
+      ].slice(0, MAX_HISTORY);
+      setSearchHistory(updated);
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    } catch (error) {
+      console.error('Failed to save search history:', error);
+    }
+  };
+
+  const clearSearchHistory = async () => {
+    try {
+      setSearchHistory([]);
+      await AsyncStorage.removeItem(STORAGE_KEY);
+    } catch (error) {
+      console.error('Failed to clear search history:', error);
+    }
+  };
 
   const handleSearch = useCallback(async () => {
     const name = searchText.trim();
@@ -38,18 +88,46 @@ export default function HomePage() {
 
     setIsSearching(true);
     try {
+      // Save to history
+      await saveSearchHistory({
+        name,
+        timestamp: Date.now(),
+      });
       router.push('/result', { stockName: name });
     } finally {
       setIsSearching(false);
     }
-  }, [searchText, router]);
+  }, [searchText, router, searchHistory]);
 
   const handleHotStock = useCallback(
-    (name: string, code: string) => {
+    async (name: string, code: string) => {
       setSearchText(name);
-      // Determine market: 0=深圳, 1=上海
+      // Determine market: 0=深圳，1=上海
       const market = code.startsWith('6') || code.startsWith('9') ? 1 : 0;
+      // Save to history
+      await saveSearchHistory({
+        name,
+        code,
+        market,
+        timestamp: Date.now(),
+      });
       router.push('/result', { stockName: name, stockCode: code, market });
+    },
+    [router, searchHistory]
+  );
+
+  const handleHistoryPress = useCallback(
+    (item: SearchHistoryItem) => {
+      setSearchText(item.name);
+      if (item.code && item.market !== undefined) {
+        router.push('/result', {
+          stockName: item.name,
+          stockCode: item.code,
+          market: item.market,
+        });
+      } else {
+        router.push('/result', { stockName: item.name });
+      }
     },
     [router]
   );
@@ -104,6 +182,39 @@ export default function HomePage() {
             <Text style={styles.searchButtonText}>开始分析</Text>
           </Pressable>
         </View>
+
+        {/* Search History */}
+        {searchHistory.length > 0 && (
+          <View style={styles.historySection}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionHeaderLeft}>
+                <Text style={styles.sectionLabel}>HISTORY</Text>
+                <Text style={styles.sectionTitle}>搜索历史</Text>
+              </View>
+              <Pressable onPress={clearSearchHistory}>
+                <Text style={styles.clearButton}>清除</Text>
+              </Pressable>
+            </View>
+            <FlatList
+              data={searchHistory}
+              keyExtractor={(item) => `${item.name}-${item.timestamp}`}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.historyList}
+              renderItem={({ item }) => (
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.historyChip,
+                    pressed && styles.historyChipPressed,
+                  ]}
+                  onPress={() => handleHistoryPress(item)}
+                >
+                  <Text style={styles.historyChipText}>{item.name}</Text>
+                </Pressable>
+              )}
+            />
+          </View>
+        )}
 
         {/* Hot Stocks */}
         <View style={styles.hotStocksSection}>
@@ -178,128 +289,148 @@ const styles = StyleSheet.create({
     marginRight: 8,
     shadowColor: '#00F0FF',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
+    shadowOpacity: 1,
     shadowRadius: 4,
   },
   headerLabel: {
     fontSize: 11,
-    letterSpacing: 3,
-    color: '#555570',
-    fontWeight: '600',
-    textTransform: 'uppercase',
+    color: '#00F0FF',
+    letterSpacing: 2,
+    fontFamily: 'monospace',
   },
   headerTitle: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#EAEAEA',
-    letterSpacing: 2,
+    fontSize: 40,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 8,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#555570',
-    marginTop: 6,
-    letterSpacing: 1,
+    color: '#8888AA',
+    marginBottom: 16,
   },
   neonLine: {
-    height: 2,
-    width: 60,
-    marginTop: 16,
+    height: 1,
     backgroundColor: '#00F0FF',
-    borderRadius: 1,
     shadowColor: '#00F0FF',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 8,
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
   },
   searchSection: {
-    marginBottom: 32,
+    marginBottom: 24,
   },
   searchBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#12121A',
-    borderWidth: 1,
-    borderColor: 'rgba(0,240,255,0.15)',
-    borderRadius: 8,
+    backgroundColor: '#1A1A2E',
+    borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
+    borderWidth: 1,
+    borderColor: '#2A2A4A',
     marginBottom: 12,
   },
   searchIcon: {
     fontSize: 20,
-    color: '#555570',
+    color: '#00F0FF',
     marginRight: 12,
   },
   searchInput: {
     flex: 1,
-    fontSize: 15,
-    color: '#EAEAEA',
-    padding: 0,
+    fontSize: 16,
+    color: '#FFFFFF',
   },
   searchButton: {
-    backgroundColor: '#12121A',
-    borderWidth: 1,
-    borderColor: '#00F0FF',
-    borderRadius: 6,
+    backgroundColor: '#00F0FF',
+    borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
     shadowColor: '#00F0FF',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
   },
   searchButtonPressed: {
-    opacity: 0.7,
+    opacity: 0.8,
   },
   searchButtonText: {
-    color: '#00F0FF',
-    fontSize: 14,
-    fontWeight: '700',
-    letterSpacing: 2,
-    textTransform: 'uppercase',
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#0A0A0F',
   },
-  hotStocksSection: {
-    marginBottom: 32,
+  historySection: {
+    marginBottom: 24,
   },
   sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 16,
+  },
+  sectionHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  clearButton: {
+    fontSize: 13,
+    color: '#FF003C',
   },
   sectionLabel: {
     fontSize: 11,
-    letterSpacing: 2,
-    color: '#555570',
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    marginBottom: 4,
+    color: '#6666AA',
+    letterSpacing: 1.5,
+    fontFamily: 'monospace',
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#EAEAEA',
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  historyList: {
+    gap: 8,
+  },
+  historyChip: {
+    backgroundColor: '#1A1A2E',
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: '#2A2A4A',
+    marginRight: 8,
+  },
+  historyChipPressed: {
+    borderColor: '#00F0FF',
+  },
+  historyChipText: {
+    fontSize: 14,
+    color: '#CCCCCC',
+  },
+  hotStocksSection: {
+    marginBottom: 24,
   },
   stockCard: {
     flex: 1,
-    backgroundColor: '#12121A',
-    borderWidth: 1,
-    borderColor: 'rgba(0,240,255,0.08)',
-    borderRadius: 8,
+    backgroundColor: '#1A1A2E',
+    borderRadius: 12,
     padding: 16,
-    marginHorizontal: 4,
-    marginBottom: 8,
+    margin: 4,
+    borderWidth: 1,
+    borderColor: '#2A2A4A',
   },
   stockCardPressed: {
-    borderColor: 'rgba(0,240,255,0.3)',
-    backgroundColor: '#1A1A24',
+    borderColor: '#00F0FF',
   },
   stockName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#EAEAEA',
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
     marginBottom: 4,
   },
   stockCode: {
     fontSize: 12,
-    color: '#555570',
+    color: '#6666AA',
     fontFamily: 'monospace',
   },
   infoSection: {
@@ -308,36 +439,28 @@ const styles = StyleSheet.create({
   infoCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#12121A',
-    borderWidth: 1,
-    borderColor: 'rgba(0,240,255,0.06)',
-    borderRadius: 8,
+    backgroundColor: '#1A1A2E',
+    borderRadius: 12,
     padding: 16,
+    borderWidth: 1,
+    borderColor: '#2A2A4A',
   },
   infoIcon: {
     fontSize: 24,
-    color: '#00FF88',
-    fontWeight: '700',
-    marginRight: 14,
-    width: 40,
-    height: 40,
-    textAlign: 'center',
-    lineHeight: 40,
-    backgroundColor: 'rgba(0,255,136,0.08)',
-    borderRadius: 8,
+    color: '#00F0FF',
+    marginRight: 16,
   },
   infoText: {
     flex: 1,
   },
   infoTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#EAEAEA',
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
     marginBottom: 4,
   },
   infoDesc: {
-    fontSize: 12,
-    color: '#555570',
-    lineHeight: 18,
+    fontSize: 13,
+    color: '#8888AA',
   },
 });
