@@ -34,15 +34,33 @@ export interface PanicIndexResult {
 const PLATFORMS = [
   {
     name: "微博",
-    queries: ["微博 讨论 评价", "微博 股票 看法 走势"],
+    queries: ["讨论 评价 看法", "股票 走势 观点"],
+    sites: "weibo.com",
   },
   {
     name: "小红书",
-    queries: ["小红书 评论 分析", "小红书 投资 观点"],
+    queries: ["评论 分析 投资", "股票 观点 讨论"],
+    sites: "xiaohongshu.com",
   },
   {
     name: "雪球",
-    queries: ["雪球 讨论 分析", "雪球 股票 看法 走势"],
+    queries: ["讨论 分析 观点", "股票 看法 走势"],
+    sites: "xueqiu.com",
+  },
+  {
+    name: "东方财富",
+    queries: ["股吧 讨论 评论", "股票 分析 看法"],
+    sites: "eastmoney.com",
+  },
+  {
+    name: "同花顺",
+    queries: ["讨论 评价 走势", "股票 分析 观点"],
+    sites: "10jqka.com.cn",
+  },
+  {
+    name: "腾讯自选股",
+    queries: ["讨论 评论 分析", "股票 看法 观点"],
+    sites: "qq.com",
   },
 ];
 
@@ -61,11 +79,16 @@ async function searchPlatformComments(
     // 对每个平台用不同关键词搜索多次，合并去重
     const searchPromises = platform.queries.map((querySuffix) => {
       const query = `${stockName} ${querySuffix}`;
-      return client.advancedSearch(query, {
+      const options: Parameters<typeof client.advancedSearch>[1] = {
         count: 15,
         needSummary: false,
         timeRange: "1m",
-      });
+      };
+      // 金融平台使用 sites 限定域名搜索
+      if (platform.sites) {
+        options.sites = platform.sites;
+      }
+      return client.advancedSearch(query, options);
     });
 
     const results = await Promise.all(searchPromises);

@@ -75,6 +75,12 @@ function getPlatformColor(platform: string): string {
       return '#FF2442';
     case '雪球':
       return '#1E80FF';
+    case '东方财富':
+      return '#FF8C00';
+    case '同花顺':
+      return '#E63946';
+    case '腾讯自选股':
+      return '#00A4EF';
     default:
       return '#00F0FF';
   }
@@ -239,7 +245,7 @@ export default function ResultPage() {
             <ActivityIndicator color="#00F0FF" size="large" />
             <Text style={styles.loadingText}>正在扫描全网数据...</Text>
             <Text style={styles.loadingSubText}>
-              微博 · 小红书 · 雪球
+              微博 · 小红书 · 雪球 · 东方财富 · 同花顺 · 腾讯自选股
             </Text>
           </View>
         ) : error ? (
