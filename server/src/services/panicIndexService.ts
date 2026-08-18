@@ -38,8 +38,9 @@ export interface PanicIndexResult {
 const PLATFORMS = [
   {
     name: "微博",
-    queries: ["讨论 评价 看法", "股票 走势 观点"],
-    sites: "weibo.com",
+    queries: ["微博", "讨论 评价", "股票 观点"],
+    // 不使用 sites 参数，改用关键词包含"微博"来搜索
+    useWeiboKeyword: true,
   },
   {
     name: "小红书",
@@ -76,17 +77,18 @@ const PLATFORMS = [
 async function searchPlatformComments(
   stockName: string,
   platform: typeof PLATFORMS[number],
-  customHeaders?: Record<string, string>
+  _customHeaders?: Record<string, string>
 ): Promise<PlatformComment[]> {
   const config = new SearchConfig();
-  const client = new SearchClient(config, customHeaders);
+  // 不传递 customHeaders，避免 headers 问题导致搜索失败
+  const client = new SearchClient(config);
 
   const allComments: PlatformComment[] = [];
   const seenUrls = new Set<string>();
 
   try {
-    // 对每个平台用不同关键词搜索多次，合并去重
-    const searchPromises = platform.queries.map((querySuffix) => {
+    // 对每个平台用不同关键词搜索，使用串行方式避免并发问题
+    for (const querySuffix of platform.queries) {
       const query = `${stockName} ${querySuffix}`;
       const options: Parameters<typeof client.advancedSearch>[1] = {
         count: 15,
@@ -97,26 +99,40 @@ async function searchPlatformComments(
       if (platform.sites) {
         options.sites = platform.sites;
       }
-      return client.advancedSearch(query, options);
-    });
+      
+      try {
+        const response = await client.advancedSearch(query, options);
+        
+        if (!response.web_items || response.web_items.length === 0) continue;
 
-    const results = await Promise.all(searchPromises);
+        for (const item of response.web_items) {
+          // 按 URL 去重
+          if (item.url && seenUrls.has(item.url)) continue;
+          if (item.url) seenUrls.add(item.url);
 
-    for (const response of results) {
-      if (!response.web_items || response.web_items.length === 0) continue;
+          // 微博平台需要过滤非微博的结果
+          if (platform.useWeiboKeyword) {
+            const url = item.url || "";
+            const title = item.title || "";
+            const snippet = item.snippet || "";
+            const isWeibo =
+              url.includes("weibo.com") ||
+              url.includes("weibo.cn") ||
+              title.includes("微博") ||
+              snippet.includes("微博");
+            if (!isWeibo) continue;
+          }
 
-      for (const item of response.web_items) {
-        // 按 URL 去重
-        if (item.url && seenUrls.has(item.url)) continue;
-        if (item.url) seenUrls.add(item.url);
-
-        allComments.push({
-          platform: platform.name,
-          title: item.title || "",
-          snippet: item.snippet || "",
-          url: item.url || "",
-          publishTime: item.publish_time || "",
-        });
+          allComments.push({
+            platform: platform.name,
+            title: item.title || "",
+            snippet: item.snippet || "",
+            url: item.url || "",
+            publishTime: item.publish_time || "",
+          });
+        }
+      } catch (searchError) {
+        console.error(`Search error for query "${query}":`, searchError);
       }
     }
   } catch (error) {
