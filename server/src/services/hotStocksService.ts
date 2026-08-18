@@ -1,8 +1,7 @@
 /**
  * 热门股票服务
- * 通过 Web Search 获取当日换手率最高的股票
+ * 通过新浪财经API获取当日换手率最高的股票
  */
-import { SearchClient, Config as SearchConfig } from "coze-coding-dev-sdk";
 
 export interface HotStock {
   code: string;
@@ -12,117 +11,47 @@ export interface HotStock {
 
 /**
  * 获取当日换手率最高的股票
+ * 使用新浪财经API获取全市场A股数据，按换手率降序排序
  */
 export async function getTopTurnoverStocks(count: number = 9): Promise<HotStock[]> {
   try {
-    const config = new SearchConfig();
-    const client = new SearchClient(config);
+    // 新浪财经API：获取全市场A股数据，按换手率降序排序
+    // node=hs_a 表示沪深A股
+    // sort=turnoverratio 按换手率排序
+    // asc=0 降序
+    const url = `https://vip.stock.finance.sina.com.cn/quotes_service/api/json_v2.php/Market_Center.getHQNodeData?page=1&num=${count}&sort=turnoverratio&asc=0&node=hs_a`;
 
-    const today = new Date().toLocaleDateString("zh-CN", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
+    const response = await fetch(url, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        Referer: "https://finance.sina.com.cn/",
+      },
     });
 
-    const response = await client.advancedSearch(`${today} A股 换手率最高 排行榜 前10`, {
-      count: 10,
-      needSummary: false,
-      timeRange: "1d",
-    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
-    const webItems = response.web_items;
-    if (!webItems || webItems.length === 0) {
-      console.log("Web Search 未返回结果，使用默认热门股票");
+    const data = await response.json();
+
+    if (!Array.isArray(data) || data.length === 0) {
+      console.log("新浪财经API未返回数据，使用默认热门股票");
       return getDefaultHotStocks();
     }
 
-    // 从搜索结果中提取股票数据
-    const stocks = extractStocksFromSearchResults(webItems);
+    // 解析数据并转换为HotStock格式
+    const stocks: HotStock[] = data.map((item: any) => ({
+      code: item.code,
+      name: item.name,
+      turnoverRate: parseFloat(item.turnoverratio) || 0,
+    }));
 
-    if (stocks.length >= 3) {
-      return stocks.slice(0, count);
-    }
-
-    // 如果提取的数据不足，补充默认数据
-    const defaultStocks = getDefaultHotStocks();
-    const existingCodes = new Set(stocks.map((s) => s.code));
-    for (const stock of defaultStocks) {
-      if (!existingCodes.has(stock.code) && stocks.length < count) {
-        stocks.push(stock);
-      }
-    }
-
-    return stocks.slice(0, count);
+    return stocks;
   } catch (error) {
     console.error("获取换手率排行失败:", error);
     return getDefaultHotStocks();
   }
-}
-
-/**
- * 从搜索结果中提取股票数据
- */
-function extractStocksFromSearchResults(
-  webItems: Array<{ title?: string; snippet?: string; url?: string }>
-): HotStock[] {
-  const stocks: HotStock[] = [];
-  const seenCodes = new Set<string>();
-
-  for (const item of webItems) {
-    const text = `${item.title || ""} ${item.snippet || ""}`;
-
-    // 匹配格式: 股票名称(代码) 换手率XX%
-    // 或: 代码 股票名称 换手率
-    const patterns = [
-      /([^\s(（]{2,8})[（(](\d{6})[)）][^%]*?换手率[^\d]*?([\d.]+)%/g,
-      /(\d{6})\s+([^\s]{2,8})\s+[^%]*?换手率[^\d]*?([\d.]+)%/g,
-      /([^\s]{2,8})\s+(\d{6})\s+[^%]*?换手率[^\d]*?([\d.]+)%/g,
-    ];
-
-    for (const pattern of patterns) {
-      let match;
-      while ((match = pattern.exec(text)) !== null) {
-        let name: string;
-        let code: string;
-        let rate: number;
-
-        if (/^\d{6}$/.test(match[2])) {
-          // 格式: 名称(代码) 换手率
-          name = match[1];
-          code = match[2];
-          rate = parseFloat(match[3]);
-        } else if (/^\d{6}$/.test(match[1])) {
-          // 格式: 代码 名称 换手率
-          name = match[2];
-          code = match[1];
-          rate = parseFloat(match[3]);
-        } else {
-          // 格式: 名称 代码 换手率
-          name = match[1];
-          code = match[2];
-          rate = parseFloat(match[3]);
-        }
-
-        // 验证名称是否有效（只包含中文、字母，长度2-8）
-        const isValidName = /^[\u4e00-\u9fa5a-zA-Z]{2,8}$/.test(name);
-
-        if (
-          code &&
-          !seenCodes.has(code) &&
-          rate > 0 &&
-          rate < 100 &&
-          isValidName
-        ) {
-          seenCodes.add(code);
-          stocks.push({ code, name, turnoverRate: rate });
-        }
-      }
-    }
-  }
-
-  // 按换手率降序排序
-  stocks.sort((a, b) => b.turnoverRate - a.turnoverRate);
-  return stocks;
 }
 
 /**
