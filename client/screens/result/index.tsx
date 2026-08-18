@@ -292,7 +292,7 @@ export default function ResultPage() {
           </Pressable>
           <View style={styles.headerInfo}>
             <Text style={styles.headerLabel}>STOCK ANALYSIS</Text>
-            <Text style={styles.stockName}>{stockName}</Text>
+            <Text style={styles.stockName}>{data?.stockName || stockName}</Text>
           </View>
         </View>
 
