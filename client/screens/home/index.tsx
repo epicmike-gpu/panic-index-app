@@ -17,16 +17,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
-const HOT_STOCKS = [
-  { name: '贵州茅台', code: '600519' },
-  { name: '宁德时代', code: '300750' },
-  { name: '比亚迪', code: '002594' },
-  { name: '中国平安', code: '601318' },
-  { name: '腾讯控股', code: '00700' },
-  { name: '招商银行', code: '600036' },
-  { name: '隆基绿能', code: '601012' },
-  { name: '药明康德', code: '603259' },
-];
+const EXPO_PUBLIC_BACKEND_BASE_URL = process.env.EXPO_PUBLIC_BACKEND_BASE_URL;
+
+interface HotStock {
+  code: string;
+  name: string;
+  turnoverRate: number;
+}
 
 const STORAGE_KEY = 'search_history';
 const MAX_HISTORY = 10;
@@ -42,13 +39,38 @@ export default function HomePage() {
   const [searchText, setSearchText] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
+  const [hotStocks, setHotStocks] = useState<HotStock[]>([]);
+  const [isLoadingHotStocks, setIsLoadingHotStocks] = useState(true);
   const router = useSafeRouter();
   const insets = useSafeAreaInsets();
 
-  // Load search history on mount
+  // Load search history and hot stocks on mount
   useEffect(() => {
     loadSearchHistory();
+    loadHotStocks();
   }, []);
+
+  const loadHotStocks = async () => {
+    try {
+      setIsLoadingHotStocks(true);
+      /**
+       * 服务端文件：server/src/routes/panicIndex.ts
+       * 接口：GET /api/v1/panic-index/hot-stocks
+       * Query 参数：count?: number (默认9)
+       */
+      const response = await fetch(
+        `${EXPO_PUBLIC_BACKEND_BASE_URL}/api/v1/panic-index/hot-stocks?count=9`
+      );
+      const data = await response.json();
+      if (data.success && data.data) {
+        setHotStocks(data.data);
+      }
+    } catch (error) {
+      console.error('Failed to load hot stocks:', error);
+    } finally {
+      setIsLoadingHotStocks(false);
+    }
+  };
 
   const loadSearchHistory = async () => {
     try {
@@ -224,27 +246,47 @@ export default function HomePage() {
         {/* Hot Stocks */}
         <View style={styles.hotStocksSection}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionLabel}>HOT STOCKS</Text>
-            <Text style={styles.sectionTitle}>热门股票</Text>
+            <View style={styles.sectionHeaderLeft}>
+              <Text style={styles.sectionLabel}>HOT STOCKS</Text>
+              <Text style={styles.sectionTitle}>今日换手率排行</Text>
+            </View>
+            <Pressable onPress={loadHotStocks} disabled={isLoadingHotStocks}>
+              <Text style={styles.refreshBtn}>
+                {isLoadingHotStocks ? '...' : '刷新'}
+              </Text>
+            </Pressable>
           </View>
-          <FlatList
-            data={HOT_STOCKS}
-            keyExtractor={(item) => item.code}
-            numColumns={2}
-            scrollEnabled={false}
-            renderItem={({ item }) => (
-              <Pressable
-                style={({ pressed }) => [
-                  styles.stockCard,
-                  pressed && styles.stockCardPressed,
-                ]}
-                onPress={() => handleHotStock(item.name, item.code)}
-              >
-                <Text style={styles.stockName}>{item.name}</Text>
-                <Text style={styles.stockCode}>{item.code}</Text>
-              </Pressable>
-            )}
-          />
+          {isLoadingHotStocks && hotStocks.length === 0 ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator color="#00F0FF" />
+              <Text style={styles.loadingText}>获取换手率排行...</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={hotStocks}
+              keyExtractor={(item) => item.code}
+              numColumns={3}
+              scrollEnabled={false}
+              renderItem={({ item, index }) => (
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.stockCard,
+                    pressed && styles.stockCardPressed,
+                  ]}
+                  onPress={() => handleHotStock(item.name, item.code)}
+                >
+                  <View style={styles.stockRankBadge}>
+                    <Text style={styles.stockRankText}>#{index + 1}</Text>
+                  </View>
+                  <Text style={styles.stockName} numberOfLines={1}>{item.name}</Text>
+                  <Text style={styles.stockCode}>{item.code}</Text>
+                  <Text style={styles.turnoverRate}>
+                    换手 {item.turnoverRate.toFixed(1)}%
+                  </Text>
+                </Pressable>
+              )}
+            />
+          )}
         </View>
 
         {/* Info Section */}
@@ -419,24 +461,59 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#1A1A2E',
     borderRadius: 12,
-    padding: 16,
+    padding: 12,
     margin: 4,
     borderWidth: 1,
     borderColor: '#2A2A4A',
+    alignItems: 'center',
   },
   stockCardPressed: {
     borderColor: '#00F0FF',
   },
+  stockRankBadge: {
+    backgroundColor: '#00F0FF20',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    marginBottom: 6,
+  },
+  stockRankText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#00F0FF',
+    fontFamily: 'monospace',
+  },
   stockName: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#FFFFFF',
     marginBottom: 4,
+    textAlign: 'center',
   },
   stockCode: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#6666AA',
     fontFamily: 'monospace',
+    marginBottom: 4,
+  },
+  turnoverRate: {
+    fontSize: 11,
+    color: '#FF6B00',
+    fontWeight: 'bold',
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    padding: 24,
+    gap: 12,
+  },
+  loadingText: {
+    fontSize: 12,
+    color: '#6666AA',
+  },
+  refreshBtn: {
+    fontSize: 12,
+    color: '#00F0FF',
+    fontWeight: 'bold',
   },
   infoSection: {
     gap: 12,

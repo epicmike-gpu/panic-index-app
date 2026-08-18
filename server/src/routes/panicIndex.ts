@@ -2,9 +2,23 @@ import { Router } from "express";
 import type { Request, Response } from "express";
 import { analyzePanicIndex } from "../services/panicIndexService.js";
 import { getStockNameByCode, isStockCode } from "../services/stockLookupService.js";
+import { getTopTurnoverStocks } from "../services/hotStocksService.js";
 import { HeaderUtils } from "coze-coding-dev-sdk";
 
 const router = Router();
+
+// GET /api/v1/panic-index/hot-stocks
+// 获取当日换手率最高的热门股票
+router.get("/hot-stocks", async (_req: Request, res: Response) => {
+  try {
+    const count = parseInt(_req.query.count as string) || 9;
+    const stocks = await getTopTurnoverStocks(count);
+    res.json({ success: true, data: stocks });
+  } catch (error) {
+    console.error("获取热门股票失败:", error);
+    res.status(500).json({ success: false, error: "获取热门股票失败" });
+  }
+});
 
 // POST /api/v1/panic-index/analyze
 // Body: { stockName: string, stockCode?: string, market?: number }
