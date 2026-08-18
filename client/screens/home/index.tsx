@@ -45,9 +45,11 @@ export default function HomePage() {
   }, [searchText, router]);
 
   const handleHotStock = useCallback(
-    (name: string) => {
+    (name: string, code: string) => {
       setSearchText(name);
-      router.push('/result', { stockName: name });
+      // Determine market: 0=深圳, 1=上海
+      const market = code.startsWith('6') || code.startsWith('9') ? 1 : 0;
+      router.push('/result', { stockName: name, stockCode: code, market });
     },
     [router]
   );
@@ -120,7 +122,7 @@ export default function HomePage() {
                   styles.stockCard,
                   pressed && styles.stockCardPressed,
                 ]}
-                onPress={() => handleHotStock(item.name)}
+                onPress={() => handleHotStock(item.name, item.code)}
               >
                 <Text style={styles.stockName}>{item.name}</Text>
                 <Text style={styles.stockCode}>{item.code}</Text>

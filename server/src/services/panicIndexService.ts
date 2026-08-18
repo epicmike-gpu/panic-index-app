@@ -1,5 +1,6 @@
 import { SearchClient, Config as SearchConfig, HeaderUtils as SearchHeaderUtils } from "coze-coding-dev-sdk";
 import { LLMClient, Config as LLMConfig, HeaderUtils as LLMHeaderUtils } from "coze-coding-dev-sdk";
+import { fetchMarketIndicators, calculateMarketPanicScore, type MarketIndicators } from "./marketIndicatorsService";
 
 export interface PlatformComment {
   platform: string;
@@ -27,6 +28,7 @@ export interface PanicIndexResult {
     sentiment: string;
     hotComments: PlatformComment[];
   }[];
+  marketIndicators: MarketIndicators;
   analysisSummary: string;
   analyzedAt: string;
 }
@@ -213,6 +215,8 @@ function getOverallSentimentLabel(panicScore: number): string {
 
 export async function analyzePanicIndex(
   stockName: string,
+  stockCode?: string,
+  market?: number,
   forwardHeaders?: Record<string, string>
 ): Promise<PanicIndexResult> {
   // Step 1: Search comments from all platforms in parallel
@@ -241,11 +245,33 @@ export async function analyzePanicIndex(
     forwardHeaders
   );
 
-  // Step 4: Calculate panic index and recommendation
-  const panicIndex = sentimentResult.score;
+  // Step 4: Fetch market indicators if stock code is provided
+  let marketIndicators: MarketIndicators = {
+    marginBalance: { value: "暂无数据", change: "0%", trend: "stable" },
+    volume: { value: "暂无数据", turnoverRate: "暂无数据", trend: "stable" },
+    limitUpDown: { upCount: 0, downCount: 0, ratio: "暂无数据" },
+    newAccounts: { value: "暂无数据", period: "近期" },
+    socialHeat: { score: 0, trend: "stable" },
+  };
+
+  if (stockCode && market !== undefined) {
+    marketIndicators = await fetchMarketIndicators(
+      stockName,
+      stockCode,
+      market,
+      allComments.length,
+      forwardHeaders
+    );
+  }
+
+  // Step 5: Calculate combined panic index (70% sentiment + 30% market indicators)
+  const sentimentScore = sentimentResult.score;
+  const marketScore = calculateMarketPanicScore(marketIndicators);
+  const panicIndex = Math.round(sentimentScore * 0.7 + marketScore * 0.3);
+
   const recommendation = getRecommendation(panicIndex);
 
-  // Step 5: Assign sentiment to each platform based on overall analysis
+  // Step 6: Assign sentiment to each platform based on overall analysis
   platformData.forEach((pd) => {
     if (pd.commentCount === 0) {
       pd.sentiment = "暂无数据";
@@ -260,6 +286,7 @@ export async function analyzePanicIndex(
     recommendation,
     overallSentiment: getOverallSentimentLabel(panicIndex),
     platformData,
+    marketIndicators,
     analysisSummary: sentimentResult.summary,
     analyzedAt: new Date().toISOString(),
   };

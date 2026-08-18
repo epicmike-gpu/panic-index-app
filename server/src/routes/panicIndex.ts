@@ -6,10 +6,10 @@ import { HeaderUtils } from "coze-coding-dev-sdk";
 const router = Router();
 
 // POST /api/v1/panic-index/analyze
-// Body: { stockName: string }
+// Body: { stockName: string, stockCode?: string, market?: number }
 router.post("/analyze", async (req: Request, res: Response) => {
   try {
-    const { stockName } = req.body;
+    const { stockName, stockCode, market } = req.body;
 
     if (!stockName || typeof stockName !== "string" || stockName.trim().length === 0) {
       res.status(400).json({
@@ -23,7 +23,12 @@ router.post("/analyze", async (req: Request, res: Response) => {
       req.headers as Record<string, string>
     );
 
-    const result = await analyzePanicIndex(stockName.trim(), forwardHeaders);
+    const result = await analyzePanicIndex(
+      stockName.trim(),
+      stockCode,
+      market,
+      forwardHeaders
+    );
 
     res.status(200).json(result);
   } catch (error) {

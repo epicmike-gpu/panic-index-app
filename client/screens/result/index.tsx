@@ -28,12 +28,39 @@ interface PlatformData {
   }[];
 }
 
+interface MarketIndicators {
+  marginBalance: {
+    value: string;
+    change: string;
+    trend: 'up' | 'down' | 'stable';
+  };
+  volume: {
+    value: string;
+    turnoverRate: string;
+    trend: 'up' | 'down' | 'stable';
+  };
+  limitUpDown: {
+    upCount: number;
+    downCount: number;
+    ratio: string;
+  };
+  newAccounts: {
+    value: string;
+    period: string;
+  };
+  socialHeat: {
+    score: number;
+    trend: 'up' | 'down' | 'stable';
+  };
+}
+
 interface PanicIndexData {
   stockName: string;
   panicIndex: number;
   recommendation: 'buy' | 'hold' | 'sell';
   overallSentiment: string;
   platformData: PlatformData[];
+  marketIndicators: MarketIndicators;
   analysisSummary: string;
   analyzedAt: string;
 }
@@ -167,7 +194,11 @@ const gaugeStyles = StyleSheet.create({
 });
 
 export default function ResultPage() {
-  const { stockName } = useSafeSearchParams<{ stockName: string }>();
+  const { stockName, stockCode, market } = useSafeSearchParams<{
+    stockName: string;
+    stockCode?: string;
+    market?: number;
+  }>();
   const router = useSafeRouter();
   const insets = useSafeAreaInsets();
 
@@ -186,14 +217,14 @@ export default function ResultPage() {
       /**
        * 服务端文件：server/src/routes/panicIndex.ts
        * 接口：POST /api/v1/panic-index/analyze
-       * Body 参数：stockName: string
+       * Body 参数：stockName: string, stockCode?: string, market?: number
        */
       const response = await fetch(
         `${EXPO_PUBLIC_BACKEND_BASE_URL}/api/v1/panic-index/analyze`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ stockName }),
+          body: JSON.stringify({ stockName, stockCode, market }),
         }
       );
 
@@ -208,7 +239,7 @@ export default function ResultPage() {
     } finally {
       setLoading(false);
     }
-  }, [stockName]);
+  }, [stockName, stockCode, market]);
 
   useEffect(() => {
     fetchAnalysis();
@@ -317,6 +348,56 @@ export default function ResultPage() {
                 </Text>
               </View>
             </View>
+
+            {/* Market Indicators */}
+            {data.marketIndicators && (
+              <View style={styles.platformSection}>
+                <Text style={styles.sectionLabel}>MARKET INDICATORS</Text>
+                <Text style={styles.sectionTitle}>市场指标</Text>
+
+                <View style={styles.indicatorGrid}>
+                  <View style={styles.indicatorCard}>
+                    <Text style={styles.indicatorLabel}>融资余额</Text>
+                    <Text style={styles.indicatorValue}>{data.marketIndicators.marginBalance.value}</Text>
+                    <Text
+                      style={[
+                        styles.indicatorChange,
+                        {
+                          color:
+                            data.marketIndicators.marginBalance.trend === 'up'
+                              ? '#00FF88'
+                              : data.marketIndicators.marginBalance.trend === 'down'
+                                ? '#FF003C'
+                                : '#FFB800',
+                        },
+                      ]}
+                    >
+                      {data.marketIndicators.marginBalance.change}
+                    </Text>
+                  </View>
+
+                  <View style={styles.indicatorCard}>
+                    <Text style={styles.indicatorLabel}>成交量</Text>
+                    <Text style={styles.indicatorValue}>{data.marketIndicators.volume.value}</Text>
+                    <Text style={styles.indicatorSub}>换手率 {data.marketIndicators.volume.turnoverRate}</Text>
+                  </View>
+
+                  <View style={styles.indicatorCard}>
+                    <Text style={styles.indicatorLabel}>涨跌停比</Text>
+                    <Text style={styles.indicatorValue}>{data.marketIndicators.limitUpDown.ratio}</Text>
+                    <Text style={styles.indicatorSub}>
+                      涨停 {data.marketIndicators.limitUpDown.upCount} / 跌停 {data.marketIndicators.limitUpDown.downCount}
+                    </Text>
+                  </View>
+
+                  <View style={styles.indicatorCard}>
+                    <Text style={styles.indicatorLabel}>社交热度</Text>
+                    <Text style={styles.indicatorValue}>{data.marketIndicators.socialHeat.score}</Text>
+                    <Text style={styles.indicatorSub}>/ 100</Text>
+                  </View>
+                </View>
+              </View>
+            )}
 
             {/* Platform Data */}
             <View style={styles.platformSection}>
@@ -652,5 +733,43 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#00F0FF',
     fontWeight: '600',
+  },
+  indicatorGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginTop: 16,
+  },
+  indicatorCard: {
+    width: '48%',
+    backgroundColor: 'rgba(0,240,255,0.03)',
+    borderWidth: 1,
+    borderColor: 'rgba(0,240,255,0.08)',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 4,
+  },
+  indicatorLabel: {
+    fontSize: 11,
+    color: '#555570',
+    fontWeight: '600',
+    letterSpacing: 1,
+    marginBottom: 8,
+  },
+  indicatorValue: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#00F0FF',
+    fontFamily: 'monospace',
+  },
+  indicatorChange: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 4,
+  },
+  indicatorSub: {
+    fontSize: 11,
+    color: '#555570',
+    marginTop: 4,
   },
 });
