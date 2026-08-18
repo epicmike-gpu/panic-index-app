@@ -43,11 +43,6 @@ const PLATFORMS = [
     useWeiboKeyword: true,
   },
   {
-    name: "小红书",
-    queries: ["评论 分析 投资", "股票 观点 讨论"],
-    sites: "xiaohongshu.com",
-  },
-  {
     name: "雪球",
     queries: ["讨论 分析 观点", "股票 看法 走势"],
     sites: "xueqiu.com",
@@ -68,9 +63,9 @@ const PLATFORMS = [
     sites: "qq.com",
   },
   {
-    name: "抖音",
-    queries: ["股票 分析 评论", "投资 讨论 观点"],
-    sites: "douyin.com",
+    name: "新浪财经",
+    queries: ["股票 讨论 评论", "分析 看法 观点"],
+    sites: "sina.com.cn",
   },
 ];
 
