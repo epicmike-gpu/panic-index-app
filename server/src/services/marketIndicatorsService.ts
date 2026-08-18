@@ -31,7 +31,7 @@ export interface MarketIndicators {
 async function fetchMarginData(stockCode: string): Promise<MarketIndicators["marginBalance"]> {
   try {
     // 东方财富融资融券API
-    const url = `https://datacenter-web.eastmoney.com/api/data/v1/get?reportName=RPTA_WEB_RZRQ_GGMX&columns=ALL&filter=(SECURITY_CODE="${stockCode}")&pageSize=5&sortColumns=TRADE_DATE&sortTypes=-1`;
+    const url = `https://datacenter-web.eastmoney.com/api/data/v1/get?reportName=RPTA_WEB_RZRQ_GGMX&columns=ALL&filter=(SCODE=%22${stockCode}%22)&pageSize=5&sortColumns=DATE&sortTypes=-1`;
     const response = await fetch(url, {
       headers: { "User-Agent": "Mozilla/5.0" },
     });
@@ -58,35 +58,27 @@ async function fetchMarginData(stockCode: string): Promise<MarketIndicators["mar
   return { value: "暂无数据", change: "0%", trend: "stable" };
 }
 
-// 东方财富公开API - 获取个股行情（成交量/换手率）
+// 腾讯财经API - 获取个股行情（成交量/换手率）
 async function fetchVolumeData(stockCode: string, market: number): Promise<MarketIndicators["volume"]> {
   try {
     // market: 0=深圳, 1=上海
-    const secid = `${market}.${stockCode}`;
-    const url = `https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=${secid}&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61&klt=101&fqt=1&end=20500101&lmt=5`;
+    const prefix = market === 1 ? "sh" : "sz";
+    const url = `https://qt.gtimg.cn/q=${prefix}${stockCode}`;
     const response = await fetch(url, {
       headers: { "User-Agent": "Mozilla/5.0" },
     });
-    const data: any = await response.json();
+    const text = await response.text();
 
-    if (data.data && data.data.klines && data.data.klines.length > 0) {
-      const latest = data.data.klines[data.data.klines.length - 1].split(",");
-      const prev = data.data.klines.length > 1
-        ? data.data.klines[data.data.klines.length - 2].split(",")
-        : null;
+    // 解析腾讯股票数据格式
+    // 格式: v_sh600519="1~股票名~代码~当前价~昨收~开盘~成交量(手)~..."
+    const match = text.match(/="([^"]+)"/);
+    if (match && match[1]) {
+      const fields = match[1].split("~");
+      // 字段索引: 6=成交量(手), 38=换手率
+      const volume = fields[6] ? `${(parseInt(fields[6]) / 10000).toFixed(0)}万手` : "暂无数据";
+      const turnoverRate = fields[38] ? `${fields[38]}%` : "暂无数据";
 
-      // kline format: date,open,close,high,low,volume,amount,amplitude,change,changeAmount,turnover
-      const volume = latest[5] ? `${(parseInt(latest[5]) / 10000).toFixed(0)}万手` : "暂无数据";
-      const turnoverRate = latest[10] ? `${latest[10]}%` : "暂无数据";
-
-      let trend: "up" | "down" | "stable" = "stable";
-      if (prev && latest[5] && prev[5]) {
-        const volNow = parseInt(latest[5]);
-        const volPrev = parseInt(prev[5]);
-        trend = volNow > volPrev ? "up" : volNow < volPrev ? "down" : "stable";
-      }
-
-      return { value: volume, turnoverRate, trend };
+      return { value: volume, turnoverRate, trend: "stable" };
     }
   } catch (error) {
     console.error("Volume data fetch error:", error);
