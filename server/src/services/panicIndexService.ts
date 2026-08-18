@@ -32,9 +32,18 @@ export interface PanicIndexResult {
 }
 
 const PLATFORMS = [
-  { name: "微博", site: "weibo.com", querySuffix: "微博 讨论" },
-  { name: "小红书", site: "xiaohongshu.com", querySuffix: "小红书 评论" },
-  { name: "雪球", site: "xueqiu.com", querySuffix: "雪球 讨论" },
+  {
+    name: "微博",
+    queries: ["微博 讨论 评价", "微博 股票 看法 走势"],
+  },
+  {
+    name: "小红书",
+    queries: ["小红书 评论 分析", "小红书 投资 观点"],
+  },
+  {
+    name: "雪球",
+    queries: ["雪球 讨论 分析", "雪球 股票 看法 走势"],
+  },
 ];
 
 async function searchPlatformComments(
@@ -45,29 +54,44 @@ async function searchPlatformComments(
   const config = new SearchConfig();
   const client = new SearchClient(config, customHeaders);
 
+  const allComments: PlatformComment[] = [];
+  const seenUrls = new Set<string>();
+
   try {
-    const query = `${stockName} ${platform.querySuffix}`;
-    const response = await client.advancedSearch(query, {
-      count: 8,
-      needSummary: false,
-      timeRange: "1w",
+    // 对每个平台用不同关键词搜索多次，合并去重
+    const searchPromises = platform.queries.map((querySuffix) => {
+      const query = `${stockName} ${querySuffix}`;
+      return client.advancedSearch(query, {
+        count: 15,
+        needSummary: false,
+        timeRange: "1m",
+      });
     });
 
-    if (!response.web_items || response.web_items.length === 0) {
-      return [];
-    }
+    const results = await Promise.all(searchPromises);
 
-    return response.web_items.map((item) => ({
-      platform: platform.name,
-      title: item.title || "",
-      snippet: item.snippet || "",
-      url: item.url || "",
-      publishTime: item.publish_time || "",
-    }));
+    for (const response of results) {
+      if (!response.web_items || response.web_items.length === 0) continue;
+
+      for (const item of response.web_items) {
+        // 按 URL 去重
+        if (item.url && seenUrls.has(item.url)) continue;
+        if (item.url) seenUrls.add(item.url);
+
+        allComments.push({
+          platform: platform.name,
+          title: item.title || "",
+          snippet: item.snippet || "",
+          url: item.url || "",
+          publishTime: item.publish_time || "",
+        });
+      }
+    }
   } catch (error) {
     console.error(`Search error for ${platform.name}:`, error);
-    return [];
   }
+
+  return allComments;
 }
 
 async function analyzeSentiment(
@@ -178,7 +202,7 @@ export async function analyzePanicIndex(
       platform: platform.name,
       commentCount: comments.length,
       sentiment: "",
-      hotComments: comments.slice(0, 3),
+      hotComments: comments.slice(0, 8),
     };
   });
 
