@@ -2,6 +2,7 @@
  * 股票代码查询服务
  * 通过腾讯财经 API 获取股票名称
  */
+import iconv from 'iconv-lite';
 
 /**
  * 通过腾讯财经 API 获取股票名称
@@ -16,7 +17,9 @@ export async function getStockNameByCode(
     const url = `https://qt.gtimg.cn/q=${prefix}${stockCode}`;
 
     const response = await globalThis.fetch(url);
-    const text = await response.text();
+    const buffer = await response.arrayBuffer();
+    // 腾讯 API 返回 GBK 编码，需要转换
+    const text = iconv.decode(Buffer.from(buffer), 'gbk');
 
     // 解析返回数据
     // 格式：v_sh600519="1~贵州茅台~600519~1550.00~..."
