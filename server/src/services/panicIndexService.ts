@@ -1,0 +1,214 @@
+import { SearchClient, Config as SearchConfig, HeaderUtils as SearchHeaderUtils } from "coze-coding-dev-sdk";
+import { LLMClient, Config as LLMConfig, HeaderUtils as LLMHeaderUtils } from "coze-coding-dev-sdk";
+
+export interface PlatformComment {
+  platform: string;
+  title: string;
+  snippet: string;
+  url: string;
+  publishTime: string;
+}
+
+export interface SentimentResult {
+  sentiment: "positive" | "neutral" | "negative" | "panic";
+  score: number; // 0-100, higher = more panic
+  summary: string;
+  keyPhrases: string[];
+}
+
+export interface PanicIndexResult {
+  stockName: string;
+  panicIndex: number; // 0-100
+  recommendation: "buy" | "hold" | "sell";
+  overallSentiment: string;
+  platformData: {
+    platform: string;
+    commentCount: number;
+    sentiment: string;
+    hotComments: PlatformComment[];
+  }[];
+  analysisSummary: string;
+  analyzedAt: string;
+}
+
+const PLATFORMS = [
+  { name: "微博", site: "weibo.com", querySuffix: "微博 讨论" },
+  { name: "小红书", site: "xiaohongshu.com", querySuffix: "小红书 评论" },
+  { name: "雪球", site: "xueqiu.com", querySuffix: "雪球 讨论" },
+];
+
+async function searchPlatformComments(
+  stockName: string,
+  platform: typeof PLATFORMS[number],
+  customHeaders?: Record<string, string>
+): Promise<PlatformComment[]> {
+  const config = new SearchConfig();
+  const client = new SearchClient(config, customHeaders);
+
+  try {
+    const query = `${stockName} ${platform.querySuffix}`;
+    const response = await client.advancedSearch(query, {
+      count: 8,
+      needSummary: false,
+      timeRange: "1w",
+    });
+
+    if (!response.web_items || response.web_items.length === 0) {
+      return [];
+    }
+
+    return response.web_items.map((item) => ({
+      platform: platform.name,
+      title: item.title || "",
+      snippet: item.snippet || "",
+      url: item.url || "",
+      publishTime: item.publish_time || "",
+    }));
+  } catch (error) {
+    console.error(`Search error for ${platform.name}:`, error);
+    return [];
+  }
+}
+
+async function analyzeSentiment(
+  stockName: string,
+  allComments: PlatformComment[],
+  customHeaders?: Record<string, string>
+): Promise<SentimentResult> {
+  const config = new LLMConfig();
+  const client = new LLMClient(config, customHeaders);
+
+  const commentsText = allComments
+    .map(
+      (c, i) =>
+        `[${i + 1}][${c.platform}] ${c.title}: ${c.snippet}`
+    )
+    .join("\n");
+
+  const systemPrompt = `你是一个专业的股票市场情绪分析师。你需要分析来自多个社交平台（微博、小红书、雪球）的股票评论，判断市场情绪。
+
+请严格按以下JSON格式返回分析结果，不要包含其他内容：
+{
+  "sentiment": "positive|neutral|negative|panic",
+  "score": 0-100的恐慌分数(0=极度乐观, 100=极度恐慌),
+  "summary": "50字以内的情绪总结",
+  "keyPhrases": ["关键词1", "关键词2", "关键词3"]
+}
+
+评分标准：
+- 0-25: 积极乐观（评论多为看好、利好、上涨预期）→ sentiment: "positive"
+- 26-50: 中性观望（评论分歧较大，有看多有看空）→ sentiment: "neutral"
+- 51-75: 消极悲观（评论多为看跌、利空、亏损）→ sentiment: "negative"
+- 76-100: 恐慌绝望（评论多为割肉、崩盘、暴跌、绝望）→ sentiment: "panic"`;
+
+  const userPrompt = `请分析以下关于"${stockName}"的全网评论数据，判断市场情绪：
+
+${commentsText}
+
+请严格按照JSON格式返回分析结果。`;
+
+  try {
+    const response = await client.invoke(
+      [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      { model: "doubao-seed-2-0-mini-260215", temperature: 0.3 }
+    );
+
+    const content = response.content.trim();
+    // Extract JSON from response
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0]);
+      return {
+        sentiment: parsed.sentiment || "neutral",
+        score: Math.min(100, Math.max(0, parsed.score || 50)),
+        summary: parsed.summary || "情绪分析完成",
+        keyPhrases: parsed.keyPhrases || [],
+      };
+    }
+
+    return {
+      sentiment: "neutral",
+      score: 50,
+      summary: "情绪分析结果解析失败",
+      keyPhrases: [],
+    };
+  } catch (error) {
+    console.error("Sentiment analysis error:", error);
+    return {
+      sentiment: "neutral",
+      score: 50,
+      summary: "情绪分析服务暂时不可用",
+      keyPhrases: [],
+    };
+  }
+}
+
+function getRecommendation(panicScore: number): "buy" | "hold" | "sell" {
+  if (panicScore >= 65) return "buy"; // 恐慌时买入（逆向投资）
+  if (panicScore <= 35) return "sell"; // 乐观时卖出
+  return "hold"; // 中性时持有
+}
+
+function getOverallSentimentLabel(panicScore: number): string {
+  if (panicScore >= 76) return "极度恐慌";
+  if (panicScore >= 51) return "消极悲观";
+  if (panicScore >= 26) return "中性观望";
+  return "积极乐观";
+}
+
+export async function analyzePanicIndex(
+  stockName: string,
+  forwardHeaders?: Record<string, string>
+): Promise<PanicIndexResult> {
+  // Step 1: Search comments from all platforms in parallel
+  const searchPromises = PLATFORMS.map((platform) =>
+    searchPlatformComments(stockName, platform, forwardHeaders)
+  );
+  const platformResults = await Promise.all(searchPromises);
+
+  // Step 2: Collect all comments
+  const allComments: PlatformComment[] = [];
+  const platformData = PLATFORMS.map((platform, index) => {
+    const comments = platformResults[index];
+    allComments.push(...comments);
+    return {
+      platform: platform.name,
+      commentCount: comments.length,
+      sentiment: "",
+      hotComments: comments.slice(0, 3),
+    };
+  });
+
+  // Step 3: Analyze sentiment using LLM
+  const sentimentResult = await analyzeSentiment(
+    stockName,
+    allComments,
+    forwardHeaders
+  );
+
+  // Step 4: Calculate panic index and recommendation
+  const panicIndex = sentimentResult.score;
+  const recommendation = getRecommendation(panicIndex);
+
+  // Step 5: Assign sentiment to each platform based on overall analysis
+  platformData.forEach((pd) => {
+    if (pd.commentCount === 0) {
+      pd.sentiment = "暂无数据";
+    } else {
+      pd.sentiment = sentimentResult.summary;
+    }
+  });
+
+  return {
+    stockName,
+    panicIndex,
+    recommendation,
+    overallSentiment: getOverallSentimentLabel(panicIndex),
+    platformData,
+    analysisSummary: sentimentResult.summary,
+    analyzedAt: new Date().toISOString(),
+  };
+}
