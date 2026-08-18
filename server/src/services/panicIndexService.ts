@@ -62,6 +62,11 @@ const PLATFORMS = [
     queries: ["讨论 评论 分析", "股票 看法 观点"],
     sites: "qq.com",
   },
+  {
+    name: "抖音",
+    queries: ["股票 分析 评论", "投资 讨论 观点"],
+    sites: "douyin.com",
+  },
 ];
 
 async function searchPlatformComments(

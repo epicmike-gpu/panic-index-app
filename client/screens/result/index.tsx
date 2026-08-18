@@ -81,6 +81,8 @@ function getPlatformColor(platform: string): string {
       return '#E63946';
     case '腾讯自选股':
       return '#00A4EF';
+    case '抖音':
+      return '#FE2C55';
     default:
       return '#00F0FF';
   }
@@ -245,7 +247,7 @@ export default function ResultPage() {
             <ActivityIndicator color="#00F0FF" size="large" />
             <Text style={styles.loadingText}>正在扫描全网数据...</Text>
             <Text style={styles.loadingSubText}>
-              微博 · 小红书 · 雪球 · 东方财富 · 同花顺 · 腾讯自选股
+              微博 · 小红书 · 雪球 · 东方财富 · 同花顺 · 腾讯自选股 · 抖音
             </Text>
           </View>
         ) : error ? (
