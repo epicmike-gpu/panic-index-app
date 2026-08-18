@@ -418,6 +418,12 @@ export default function ResultPage() {
                     <Text style={styles.indicatorValue}>{data.marketIndicators.socialHeat.score}</Text>
                     <Text style={styles.indicatorSub}>/ 100</Text>
                   </View>
+
+                  <View style={styles.indicatorCard}>
+                    <Text style={styles.indicatorLabel}>新增股民</Text>
+                    <Text style={styles.indicatorValue}>{data.marketIndicators.newAccounts.value}</Text>
+                    <Text style={styles.indicatorSub}>{data.marketIndicators.newAccounts.period}</Text>
+                  </View>
                 </View>
               </View>
             )}

@@ -252,7 +252,7 @@ export async function analyzePanicIndex(
     marginBalance: { value: "暂无数据", change: "0%", trend: "stable" },
     volume: { value: "暂无数据", turnoverRate: "暂无数据", trend: "stable" },
     limitUpDown: { upCount: 0, downCount: 0, ratio: "暂无数据" },
-    newAccounts: { value: "暂无数据", period: "近期" },
+    newAccounts: { value: "暂无数据", period: "近期", yoyChange: "0" },
     socialHeat: { score: 0, trend: "stable" },
   };
 
