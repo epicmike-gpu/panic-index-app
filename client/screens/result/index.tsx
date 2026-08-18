@@ -54,6 +54,28 @@ interface MarketIndicators {
   };
 }
 
+interface InstitutionalReport {
+  platform: string;
+  title: string;
+  content: string;
+  url: string;
+  publishTime: string;
+  sentiment: 'positive' | 'neutral' | 'negative' | 'extreme_negative';
+  sentimentScore: number;
+}
+
+interface InstitutionalAnalysis {
+  totalReports: number;
+  positiveCount: number;
+  neutralCount: number;
+  negativeCount: number;
+  extremeNegativeCount: number;
+  institutionalSentimentScore: number;
+  keyInstitutions: string[];
+  reports: InstitutionalReport[];
+  summary: string;
+}
+
 interface PanicIndexData {
   stockName: string;
   panicIndex: number;
@@ -61,6 +83,7 @@ interface PanicIndexData {
   overallSentiment: string;
   platformData: PlatformData[];
   marketIndicators: MarketIndicators;
+  institutionalAnalysis: InstitutionalAnalysis;
   analysisSummary: string;
   analyzedAt: string;
 }
@@ -395,6 +418,140 @@ export default function ResultPage() {
                     <Text style={styles.indicatorValue}>{data.marketIndicators.socialHeat.score}</Text>
                     <Text style={styles.indicatorSub}>/ 100</Text>
                   </View>
+                </View>
+              </View>
+            )}
+
+            {/* Institutional Analysis */}
+            {data.institutionalAnalysis && (
+              <View style={styles.platformSection}>
+                <Text style={styles.sectionLabel}>INSTITUTIONAL ANALYSIS</Text>
+                <Text style={styles.sectionTitle}>机构研报分析</Text>
+
+                <View style={styles.institutionalCard}>
+                  <View style={styles.institutionalHeader}>
+                    <Text style={styles.institutionalTitle}>机构情绪指数</Text>
+                    <Text
+                      style={[
+                        styles.institutionalScore,
+                        {
+                          color:
+                            data.institutionalAnalysis.institutionalSentimentScore >= 76
+                              ? '#FF003C'
+                              : data.institutionalAnalysis.institutionalSentimentScore >= 51
+                                ? '#BF00FF'
+                                : data.institutionalAnalysis.institutionalSentimentScore >= 26
+                                  ? '#FFB800'
+                                  : '#00FF88',
+                        },
+                      ]}
+                    >
+                      {data.institutionalAnalysis.institutionalSentimentScore}
+                    </Text>
+                  </View>
+
+                  <View style={styles.sentimentDistribution}>
+                    <View style={styles.sentimentBar}>
+                      <View
+                        style={[
+                          styles.sentimentSegment,
+                          {
+                            width: `${
+                              (data.institutionalAnalysis.positiveCount /
+                                Math.max(data.institutionalAnalysis.totalReports, 1)) *
+                              100
+                            }%`,
+                            backgroundColor: '#00FF88',
+                          },
+                        ]}
+                      />
+                      <View
+                        style={[
+                          styles.sentimentSegment,
+                          {
+                            width: `${
+                              (data.institutionalAnalysis.neutralCount /
+                                Math.max(data.institutionalAnalysis.totalReports, 1)) *
+                              100
+                            }%`,
+                            backgroundColor: '#FFB800',
+                          },
+                        ]}
+                      />
+                      <View
+                        style={[
+                          styles.sentimentSegment,
+                          {
+                            width: `${
+                              (data.institutionalAnalysis.negativeCount /
+                                Math.max(data.institutionalAnalysis.totalReports, 1)) *
+                              100
+                            }%`,
+                            backgroundColor: '#BF00FF',
+                          },
+                        ]}
+                      />
+                      <View
+                        style={[
+                          styles.sentimentSegment,
+                          {
+                            width: `${
+                              (data.institutionalAnalysis.extremeNegativeCount /
+                                Math.max(data.institutionalAnalysis.totalReports, 1)) *
+                              100
+                            }%`,
+                            backgroundColor: '#FF003C',
+                          },
+                        ]}
+                      />
+                    </View>
+
+                    <View style={styles.sentimentLegend}>
+                      <View style={styles.legendItem}>
+                        <View style={[styles.legendDot, { backgroundColor: '#00FF88' }]} />
+                        <Text style={styles.legendText}>
+                          积极 {data.institutionalAnalysis.positiveCount}
+                        </Text>
+                      </View>
+                      <View style={styles.legendItem}>
+                        <View style={[styles.legendDot, { backgroundColor: '#FFB800' }]} />
+                        <Text style={styles.legendText}>
+                          中性 {data.institutionalAnalysis.neutralCount}
+                        </Text>
+                      </View>
+                      <View style={styles.legendItem}>
+                        <View style={[styles.legendDot, { backgroundColor: '#BF00FF' }]} />
+                        <Text style={styles.legendText}>
+                          消极 {data.institutionalAnalysis.negativeCount}
+                        </Text>
+                      </View>
+                      <View style={styles.legendItem}>
+                        <View style={[styles.legendDot, { backgroundColor: '#FF003C' }]} />
+                        <Text style={styles.legendText}>
+                          极度消极 {data.institutionalAnalysis.extremeNegativeCount}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  <View style={styles.institutionalSummary}>
+                    <Text style={styles.institutionalSummaryText}>
+                      {data.institutionalAnalysis.summary}
+                    </Text>
+                  </View>
+
+                  {data.institutionalAnalysis.keyInstitutions.length > 0 && (
+                    <View style={styles.institutionalList}>
+                      <Text style={styles.institutionalListTitle}>主要机构</Text>
+                      <View style={styles.institutionalTags}>
+                        {data.institutionalAnalysis.keyInstitutions.map((inst) => (
+                          <View key={inst} style={styles.institutionalTag}>
+                            <Text style={styles.institutionalTagText}>{inst}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    </View>
+                  )}
                 </View>
               </View>
             )}
@@ -771,5 +928,99 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#555570',
     marginTop: 4,
+  },
+  institutionalCard: {
+    backgroundColor: 'rgba(0,240,255,0.03)',
+    borderWidth: 1,
+    borderColor: 'rgba(0,240,255,0.08)',
+    borderRadius: 12,
+    padding: 20,
+    marginTop: 16,
+  },
+  institutionalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  institutionalTitle: {
+    fontSize: 14,
+    color: '#8888AA',
+    fontWeight: '600',
+  },
+  institutionalScore: {
+    fontSize: 32,
+    fontWeight: '800',
+    fontFamily: 'monospace',
+  },
+  sentimentDistribution: {
+    marginBottom: 20,
+  },
+  sentimentBar: {
+    flexDirection: 'row',
+    height: 8,
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginBottom: 12,
+  },
+  sentimentSegment: {
+    height: '100%',
+  },
+  sentimentLegend: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 16,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  legendDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  legendText: {
+    fontSize: 11,
+    color: '#8888AA',
+  },
+  institutionalSummary: {
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+  },
+  institutionalSummaryText: {
+    fontSize: 13,
+    color: '#AAAAAA',
+    lineHeight: 20,
+  },
+  institutionalList: {
+    marginTop: 8,
+  },
+  institutionalListTitle: {
+    fontSize: 12,
+    color: '#555570',
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  institutionalTags: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  institutionalTag: {
+    backgroundColor: 'rgba(0,240,255,0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(0,240,255,0.3)',
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  institutionalTagText: {
+    fontSize: 11,
+    color: '#00F0FF',
+    fontWeight: '600',
   },
 });

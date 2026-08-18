@@ -1,6 +1,7 @@
 import { SearchClient, Config as SearchConfig, HeaderUtils as SearchHeaderUtils } from "coze-coding-dev-sdk";
 import { LLMClient, Config as LLMConfig, HeaderUtils as LLMHeaderUtils } from "coze-coding-dev-sdk";
 import { fetchMarketIndicators, calculateMarketPanicScore, type MarketIndicators } from "./marketIndicatorsService";
+import { analyzeInstitutionalReports, type InstitutionalAnalysis } from "./institutionalAnalysisService";
 
 export interface PlatformComment {
   platform: string;
@@ -29,6 +30,7 @@ export interface PanicIndexResult {
     hotComments: PlatformComment[];
   }[];
   marketIndicators: MarketIndicators;
+  institutionalAnalysis: InstitutionalAnalysis;
   analysisSummary: string;
   analyzedAt: string;
 }
@@ -264,10 +266,20 @@ export async function analyzePanicIndex(
     );
   }
 
-  // Step 5: Calculate combined panic index (70% sentiment + 30% market indicators)
+  // Step 5: Analyze institutional reports
+  const institutionalAnalysis = await analyzeInstitutionalReports(
+    stockName,
+    stockCode,
+    forwardHeaders
+  );
+
+  // Step 6: Calculate combined panic index (60% sentiment + 20% market + 20% institutional)
   const sentimentScore = sentimentResult.score;
   const marketScore = calculateMarketPanicScore(marketIndicators);
-  const panicIndex = Math.round(sentimentScore * 0.7 + marketScore * 0.3);
+  const institutionalScore = institutionalAnalysis.institutionalSentimentScore;
+  const panicIndex = Math.round(
+    sentimentScore * 0.6 + marketScore * 0.2 + institutionalScore * 0.2
+  );
 
   const recommendation = getRecommendation(panicIndex);
 
@@ -287,7 +299,8 @@ export async function analyzePanicIndex(
     overallSentiment: getOverallSentimentLabel(panicIndex),
     platformData,
     marketIndicators,
-    analysisSummary: sentimentResult.summary,
+    institutionalAnalysis,
+    analysisSummary: `${sentimentResult.summary} | 机构观点：${institutionalAnalysis.summary}`,
     analyzedAt: new Date().toISOString(),
   };
 }
