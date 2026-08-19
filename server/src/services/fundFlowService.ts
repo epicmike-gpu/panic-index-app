@@ -6,6 +6,19 @@ const searchClient = new SearchClient(config);
 const llmConfig = new LLMConfig();
 const llmClient = new LLMClient(llmConfig);
 
+// 检查日期是否在最近一周内
+function isWithinLastWeek(snippet: string): boolean {
+  const now = new Date();
+  const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  
+  // 从 snippet 中提取日期
+  const dateMatch = snippet.match(/(\d{4}-\d{2}-\d{2})/);
+  if (!dateMatch) return true; // 如果没有日期，保留该结果
+  
+  const itemDate = new Date(dateMatch[1]);
+  return itemDate >= oneWeekAgo;
+}
+
 export interface FundFlowData {
   platform: string;
   title: string;
@@ -55,6 +68,9 @@ export async function searchFundFlowArticles(
           const url = item.url || "";
           const title = item.title || "";
           const snippet = item.snippet || "";
+
+          // 过滤非最近一周的内容
+          if (!isWithinLastWeek(snippet)) continue;
 
           // 过滤：只保留包含主力资金相关关键词的内容
           const keywords = [

@@ -105,6 +105,19 @@ const PLATFORMS = [
   },
 ];
 
+// 检查日期是否在最近一周内
+function isWithinLastWeek(snippet: string): boolean {
+  const now = new Date();
+  const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  
+  // 从 snippet 中提取日期
+  const dateMatch = snippet.match(/(\d{4}-\d{2}-\d{2})/);
+  if (!dateMatch) return true; // 如果没有日期，保留该结果
+  
+  const itemDate = new Date(dateMatch[1]);
+  return itemDate >= oneWeekAgo;
+}
+
 async function searchPlatformComments(
   stockName: string,
   platform: typeof PLATFORMS[number],
@@ -141,11 +154,14 @@ async function searchPlatformComments(
           if (item.url && seenUrls.has(item.url)) continue;
           if (item.url) seenUrls.add(item.url);
 
+          // 过滤非最近一周的内容
+          const snippet = item.snippet || "";
+          if (!isWithinLastWeek(snippet)) continue;
+
           // 微博平台需要过滤非微博的结果
           if (platform.useWeiboKeyword) {
             const url = item.url || "";
             const title = item.title || "";
-            const snippet = item.snippet || "";
             const isWeibo =
               url.includes("weibo.com") ||
               url.includes("weibo.cn") ||
