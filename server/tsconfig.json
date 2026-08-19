@@ -1,22 +1,15 @@
 {
   "$schema": "https://www.schemastore.org/tsconfig",
   "compilerOptions": {
-    "lib": [
-      "es2024",
-      "ESNext.Array",
-      "ESNext.Collection",
-      "ESNext.Iterator",
-      "ESNext.Promise"
-    ],
-    "types": ["node"],
-    "typeRoots": ["./node_modules/@types"],
-    "module": "preserve",
-    "target": "es2024",
-
+    "target": "ES2020",
+    "module": "commonjs",
+    "moduleResolution": "node",
     "strict": false,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "moduleResolution": "bundler"
+    "forceConsistentCasingInFileNames": true,
+    "types": ["node"],
+    "lib": ["es2020"]
   },
-  "include": ["src", "api"]
+  "include": ["api/**/*", "src/**/*"]
 }
