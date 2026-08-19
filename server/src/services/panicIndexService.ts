@@ -105,6 +105,31 @@ const PLATFORMS = [
     queries: ["股票 讨论 评论", "分析 观点"],
     sites: "money.163.com",
   },
+  {
+    name: "万得 (Wind)",
+    queries: ["股票 分析 评论", "资讯 数据"],
+    sites: "wind.com.cn",
+  },
+  {
+    name: "金融界",
+    queries: ["股票 讨论 评论", "分析 观点"],
+    sites: "jrj.com.cn",
+  },
+  {
+    name: "搜狐财经",
+    queries: ["股票 讨论 评论", "分析 观点"],
+    sites: "business.sohu.com",
+  },
+  {
+    name: "格隆汇",
+    queries: ["股票 分析 评论", "资讯 观点"],
+    sites: "gelonghui.com",
+  },
+  {
+    name: "股吧",
+    queries: ["讨论 评论 分析", "股票 看法 观点"],
+    sites: "guba.eastmoney.com",
+  },
 ];
 
 // 检查日期是否在最近一周内
