@@ -17,7 +17,7 @@ export async function getStockNameByCode(
     const url = `https://qt.gtimg.cn/q=${prefix}${stockCode}`;
 
     const response = await globalThis.fetch(url);
-    const buffer = await response.arrayBuffer();
+    const buffer = await (response as globalThis.Response).arrayBuffer();
     // 腾讯 API 返回 GBK 编码，需要转换
     const text = iconv.decode(Buffer.from(buffer), 'gbk');
 

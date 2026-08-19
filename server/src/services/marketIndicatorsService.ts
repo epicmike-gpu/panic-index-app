@@ -33,10 +33,11 @@ async function fetchMarginData(stockCode: string): Promise<MarketIndicators["mar
   try {
     // 东方财富融资融券 API
     const url = `https://datacenter-web.eastmoney.com/api/data/v1/get?reportName=RPTA_WEB_RZRQ_GGMX&columns=ALL&filter=(SCODE=%22${stockCode}%22)&pageSize=5&sortColumns=DATE&sortTypes=-1`;
-    const response = await fetch(url, {
+    const response = await globalThis.fetch(url, {
       headers: { "User-Agent": "Mozilla/5.0" },
     });
-    const data: any = await response.json();
+    const res = response as globalThis.Response;
+    const data: any = await res.json();
 
     if (data.result && data.result.data && data.result.data.length > 0) {
       const latest = data.result.data[0];
@@ -65,10 +66,11 @@ async function fetchVolumeData(stockCode: string, market: number): Promise<Marke
     // market: 0=深圳，1=上海
     const prefix = market === 1 ? "sh" : "sz";
     const url = `https://qt.gtimg.cn/q=${prefix}${stockCode}`;
-    const response = await fetch(url, {
+    const response = await globalThis.fetch(url, {
       headers: { "User-Agent": "Mozilla/5.0" },
     });
-    const text = await response.text();
+    const res = response as globalThis.Response;
+    const text = await res.text();
 
     // 解析腾讯股票数据格式
     // 格式：v_sh600519="1~股票名~代码~当前价~昨收~开盘~成交量 (手)~..."

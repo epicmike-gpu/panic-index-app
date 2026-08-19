@@ -21,7 +21,7 @@ export async function getTopTurnoverStocks(count: number = 9): Promise<HotStock[
     // asc=0 降序
     const url = `https://vip.stock.finance.sina.com.cn/quotes_service/api/json_v2.php/Market_Center.getHQNodeData?page=1&num=${count}&sort=turnoverratio&asc=0&node=hs_a`;
 
-    const response = await fetch(url, {
+    const response = await globalThis.fetch(url, {
       headers: {
         "User-Agent":
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -29,11 +29,12 @@ export async function getTopTurnoverStocks(count: number = 9): Promise<HotStock[
       },
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    const res = response as globalThis.Response;
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
     }
 
-    const data = await response.json();
+    const data = await res.json();
 
     if (!Array.isArray(data) || data.length === 0) {
       console.log("新浪财经API未返回数据，使用默认热门股票");
