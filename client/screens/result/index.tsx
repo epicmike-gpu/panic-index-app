@@ -759,6 +759,25 @@ export default function ResultPage() {
                 <Text style={styles.refreshText}>重新分析</Text>
               </Pressable>
             </View>
+
+            {/* Disclaimer */}
+            <View style={styles.disclaimerContainer}>
+              <View style={styles.disclaimerIcon}>
+                <FontAwesome6 name="triangle-exclamation" size={16} color="#FFB800" />
+              </View>
+              <View style={styles.disclaimerContent}>
+                <Text style={styles.disclaimerTitle}>免责声明</Text>
+                <Text style={styles.disclaimerText}>
+                  本应用提供的恐慌指数和分析结果仅供参考，不构成任何投资建议。投资有风险，入市需谨慎。本应用不对因使用本应用数据而导致的任何损失承担责任。
+                </Text>
+                <Text style={styles.disclaimerText}>
+                  数据来源：微博、雪球、东方财富、同花顺、新浪财经等公开平台。
+                </Text>
+                <Pressable onPress={() => router.push('/privacy')}>
+                  <Text style={styles.disclaimerLink}>隐私政策 →</Text>
+                </Pressable>
+              </View>
+            </View>
           </>
         ) : null}
       </ScrollView>
@@ -1153,6 +1172,45 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#00F0FF',
     fontWeight: '600',
+  },
+  disclaimerContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    padding: 16,
+    marginTop: 24,
+    marginBottom: 32,
+    backgroundColor: 'rgba(255,184,0,0.08)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,184,0,0.2)',
+  },
+  disclaimerIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,184,0,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  disclaimerContent: {
+    flex: 1,
+    gap: 8,
+  },
+  disclaimerTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFB800',
+  },
+  disclaimerText: {
+    fontSize: 12,
+    color: '#8888AA',
+    lineHeight: 18,
+  },
+  disclaimerLink: {
+    fontSize: 12,
+    color: '#00F0FF',
+    fontWeight: '600',
+    marginTop: 4,
   },
   indicatorGrid: {
     flexDirection: 'row',
