@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Screen } from '@/components/Screen';
 import { useSafeSearchParams, useSafeRouter } from '@/hooks/useSafeRouter';
+import { FontAwesome6 } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
@@ -81,6 +82,8 @@ interface PanicIndexData {
   panicIndex: number;
   recommendation: 'buy' | 'hold' | 'sell';
   overallSentiment: string;
+  retailSentiment?: string; // 散户情绪描述
+  institutionalSentiment?: string; // 机构情绪描述
   platformData: PlatformData[];
   marketIndicators: MarketIndicators;
   institutionalAnalysis: InstitutionalAnalysis;
@@ -98,11 +101,11 @@ function getPanicColor(score: number): string {
 function getRecommendationText(rec: string): string {
   switch (rec) {
     case 'buy':
-      return '建议买入';
+      return '逆向买入信号';
     case 'sell':
-      return '建议卖出';
+      return '逆向卖出信号';
     default:
-      return '建议持有';
+      return '建议持有观望';
   }
 }
 
@@ -364,13 +367,51 @@ export default function ResultPage() {
               <View style={styles.recommendationDesc}>
                 <Text style={styles.recommendationDescText}>
                   {data.recommendation === 'buy'
-                    ? '市场情绪极度恐慌，评论充满绝望与割肉声音。根据逆向投资理论，这可能是买入时机。'
+                    ? '散户情绪极度恐慌，评论充满绝望与骂人声音。根据逆向投资理论，散户恐慌时往往是买入时机。'
                     : data.recommendation === 'sell'
-                      ? '市场情绪过于乐观，评论一片看好。注意过热风险，考虑适时获利了结。'
+                      ? '机构观点积极乐观，散户情绪狂热追涨。注意过热风险，考虑适时获利了结。'
                       : '市场情绪中性，多空分歧较大。建议继续观望，等待更明确的信号。'}
                 </Text>
               </View>
             </View>
+
+            {/* Retail vs Institutional Sentiment */}
+            {(data.retailSentiment || data.institutionalSentiment) && (
+              <View style={styles.sentimentComparisonCard}>
+                <Text style={styles.sectionLabel}>SENTIMENT ANALYSIS</Text>
+                <Text style={styles.sectionTitle}>情绪对比分析</Text>
+                
+                <View style={styles.sentimentRow}>
+                  <View style={styles.sentimentItem}>
+                    <View style={[styles.sentimentIcon, { backgroundColor: 'rgba(255, 184, 0, 0.2)' }]}>
+                      <FontAwesome6 name="users" size={20} color="#FFB800" />
+                    </View>
+                    <Text style={styles.sentimentLabel}>散户情绪</Text>
+                    <Text style={styles.sentimentValue}>
+                      {data.retailSentiment || '暂无数据'}
+                    </Text>
+                  </View>
+                  
+                  <View style={styles.sentimentDivider} />
+                  
+                  <View style={styles.sentimentItem}>
+                    <View style={[styles.sentimentIcon, { backgroundColor: 'rgba(0, 240, 255, 0.2)' }]}>
+                      <FontAwesome6 name="building" size={20} color="#00F0FF" />
+                    </View>
+                    <Text style={styles.sentimentLabel}>机构观点</Text>
+                    <Text style={styles.sentimentValue}>
+                      {data.institutionalSentiment || '暂无数据'}
+                    </Text>
+                  </View>
+                </View>
+                
+                <View style={styles.sentimentTip}>
+                  <Text style={styles.sentimentTipText}>
+                    逆向投资：散户恐慌时买入，机构乐观时卖出
+                  </Text>
+                </View>
+              </View>
+            )}
 
             {/* Market Indicators */}
             {data.marketIndicators && (
@@ -781,6 +822,60 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#555570',
     lineHeight: 20,
+  },
+  sentimentComparisonCard: {
+    backgroundColor: 'rgba(20, 20, 30, 0.8)',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(0,240,255,0.1)',
+  },
+  sentimentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  sentimentItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  sentimentIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  sentimentLabel: {
+    fontSize: 12,
+    color: '#555570',
+    marginBottom: 8,
+    fontWeight: '600',
+  },
+  sentimentValue: {
+    fontSize: 13,
+    color: '#EAEAEA',
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  sentimentDivider: {
+    width: 1,
+    height: 60,
+    backgroundColor: 'rgba(0,240,255,0.1)',
+    marginHorizontal: 16,
+  },
+  sentimentTip: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,240,255,0.06)',
+  },
+  sentimentTipText: {
+    fontSize: 12,
+    color: '#00F0FF',
+    textAlign: 'center',
   },
   platformSection: {
     marginBottom: 24,

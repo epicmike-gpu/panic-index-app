@@ -13,9 +13,11 @@ export interface PlatformComment {
 
 export interface SentimentResult {
   sentiment: "positive" | "neutral" | "negative" | "panic";
-  score: number; // 0-100, higher = more panic
+  score: number; // 0-100, higher = more panic (retail panic = buy signal)
   summary: string;
   keyPhrases: string[];
+  retailSentiment?: string;
+  institutionalSentiment?: string;
 }
 
 export interface PanicIndexResult {
@@ -23,6 +25,8 @@ export interface PanicIndexResult {
   panicIndex: number; // 0-100
   recommendation: "buy" | "hold" | "sell";
   overallSentiment: string;
+  retailSentiment?: string; // 散户情绪描述
+  institutionalSentiment?: string; // 机构情绪描述
   platformData: {
     platform: string;
     commentCount: number;
@@ -152,27 +156,37 @@ async function analyzeSentiment(
     )
     .join("\n");
 
-  const systemPrompt = `你是一个专业的股票市场情绪分析师。你需要分析来自多个社交平台（微博、小红书、雪球）的股票评论，判断市场情绪。
+  const systemPrompt = `你是一个专业的股票市场情绪分析师。你需要分析来自多个社交平台的股票评论，判断市场情绪。
+
+**核心逻辑（逆向投资）：**
+- 散户（普通用户）的消极、绝望、愤怒、骂人评论 → 恐慌信号 → 建议买入
+- 机构/券商/专家的积极评论 → 过热信号 → 建议卖出
+
+**评论来源分类：**
+- 散户平台：微博、雪球、东方财富股吧、同花顺、腾讯自选股（这些平台的普通用户评论代表散户情绪）
+- 机构来源：券商研报、金融机构报告、专家分析（这些代表机构观点）
 
 请严格按以下JSON格式返回分析结果，不要包含其他内容：
 {
   "sentiment": "positive|neutral|negative|panic",
-  "score": 0-100的恐慌分数(0=极度乐观, 100=极度恐慌),
+  "score": 0-100的恐慌分数(0=机构极度乐观/散户狂热, 100=散户极度恐慌/绝望),
   "summary": "50字以内的情绪总结",
-  "keyPhrases": ["关键词1", "关键词2", "关键词3"]
+  "keyPhrases": ["关键词1", "关键词2", "关键词3"],
+  "retailSentiment": "散户情绪描述",
+  "institutionalSentiment": "机构情绪描述"
 }
 
-评分标准：
-- 0-25: 积极乐观（评论多为看好、利好、上涨预期）→ sentiment: "positive"
-- 26-50: 中性观望（评论分歧较大，有看多有看空）→ sentiment: "neutral"
-- 51-75: 消极悲观（评论多为看跌、利空、亏损）→ sentiment: "negative"
-- 76-100: 恐慌绝望（评论多为割肉、崩盘、暴跌、绝望）→ sentiment: "panic"`;
+**评分标准（逆向投资逻辑）：**
+- 0-25: 机构极度乐观 + 散户狂热追涨 → 市场过热 → sentiment: "positive" → 建议卖出
+- 26-50: 机构看好 + 散户积极 → 市场偏热 → sentiment: "neutral" → 建议谨慎
+- 51-75: 机构中性 + 散户消极 → 市场偏冷 → sentiment: "negative" → 观望
+- 76-100: 机构谨慎 + 散户恐慌绝望骂人 → 市场超卖 → sentiment: "panic" → 建议买入`;
 
   const userPrompt = `请分析以下关于"${stockName}"的全网评论数据，判断市场情绪：
 
 ${commentsText}
 
-请严格按照JSON格式返回分析结果。`;
+请严格按照JSON格式返回分析结果，包含散户情绪和机构情绪的描述。`;
 
   try {
     const response = await client.invoke(
@@ -193,6 +207,8 @@ ${commentsText}
         score: Math.min(100, Math.max(0, parsed.score || 50)),
         summary: parsed.summary || "情绪分析完成",
         keyPhrases: parsed.keyPhrases || [],
+        retailSentiment: parsed.retailSentiment || "",
+        institutionalSentiment: parsed.institutionalSentiment || "",
       };
     }
 
@@ -201,6 +217,8 @@ ${commentsText}
       score: 50,
       summary: "情绪分析结果解析失败",
       keyPhrases: [],
+      retailSentiment: "",
+      institutionalSentiment: "",
     };
   } catch (error) {
     console.error("Sentiment analysis error:", error);
@@ -209,21 +227,27 @@ ${commentsText}
       score: 50,
       summary: "情绪分析服务暂时不可用",
       keyPhrases: [],
+      retailSentiment: "",
+      institutionalSentiment: "",
     };
   }
 }
 
 function getRecommendation(panicScore: number): "buy" | "hold" | "sell" {
-  if (panicScore >= 65) return "buy"; // 恐慌时买入（逆向投资）
-  if (panicScore <= 35) return "sell"; // 乐观时卖出
-  return "hold"; // 中性时持有
+  // 逆向投资逻辑：
+  // 散户恐慌绝望（高分）→ 买入信号
+  // 机构乐观+散户狂热（低分）→ 卖出信号
+  if (panicScore >= 70) return "buy"; // 散户极度恐慌 → 买入
+  if (panicScore <= 30) return "sell"; // 机构乐观+散户狂热 → 卖出
+  return "hold"; // 中性 → 持有
 }
 
 function getOverallSentimentLabel(panicScore: number): string {
-  if (panicScore >= 76) return "极度恐慌";
-  if (panicScore >= 51) return "消极悲观";
-  if (panicScore >= 26) return "中性观望";
-  return "积极乐观";
+  // 逆向投资逻辑标签
+  if (panicScore >= 76) return "散户恐慌绝望（买入信号）";
+  if (panicScore >= 51) return "散户消极悲观";
+  if (panicScore >= 26) return "市场中性观望";
+  return "机构乐观+散户狂热（卖出信号）";
 }
 
 export async function analyzePanicIndex(
@@ -308,6 +332,8 @@ export async function analyzePanicIndex(
     panicIndex,
     recommendation,
     overallSentiment: getOverallSentimentLabel(panicIndex),
+    retailSentiment: sentimentResult.retailSentiment || "",
+    institutionalSentiment: sentimentResult.institutionalSentiment || "",
     platformData,
     marketIndicators,
     institutionalAnalysis,
