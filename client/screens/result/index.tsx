@@ -357,7 +357,7 @@ export default function ResultPage() {
               <View style={styles.buffettQuoteCard}>
                 <Text style={styles.buffettQuoteIcon}></Text>
                 <Text style={styles.buffettQuoteText}>
-                  "别人恐惧时我贪婪，别人贪婪时我恐惧"
+                  {'"别人恐惧时我贪婪，别人贪婪时我恐惧"'}
                 </Text>
                 <Text style={styles.buffettQuoteAuthor}>— 沃伦·巴菲特</Text>
               </View>
