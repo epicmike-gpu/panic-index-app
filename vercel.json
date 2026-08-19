@@ -1,0 +1,16 @@
+{
+  "buildCommand": "cd client && npx expo export --platform web",
+  "outputDirectory": "client/dist",
+  "installCommand": "pnpm install",
+  "framework": "expo",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/server/api/index.ts"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

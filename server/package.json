@@ -7,7 +7,8 @@
     "dev": "bash ../.cozeproj/scripts/server_dev_run.sh",
     "preinstall": "npx only-allow pnpm",
     "start": "NODE_ENV=production PORT=${PORT:-5000} node dist/index.js",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "vercel-build": "echo 'Vercel build'"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.95.3",
@@ -28,6 +29,7 @@
     "@types/express": "^5.0.6",
     "@types/multer": "^2.0.0",
     "@types/pg": "^8.16.0",
+    "@vercel/node": "^5.10.1",
     "drizzle-kit": "^0.31.8",
     "esbuild": "0.27.2",
     "tsx": "^4.21.0",
