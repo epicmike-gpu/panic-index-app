@@ -1,4 +1,4 @@
-import { VercelRequest, VercelResponse } from "@vercel/node";
+import type { VercelRequest, VercelResponse } from "@vercel/node";
 import express, { Request, Response } from "express";
 import cors from "cors";
 import panicIndexRouter from "../src/routes/panicIndex.js";
