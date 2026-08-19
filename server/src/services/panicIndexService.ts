@@ -73,6 +73,36 @@ const PLATFORMS = [
     queries: ["股票 讨论 评论", "分析 看法 观点"],
     sites: "sina.com.cn",
   },
+  {
+    name: "财联社",
+    queries: ["股票 分析 评论", "快讯 资讯"],
+    sites: "cls.cn",
+  },
+  {
+    name: "华尔街见闻",
+    queries: ["股票 分析 评论", "资讯 观点"],
+    sites: "wallstreetcn.com",
+  },
+  {
+    name: "证券时报",
+    queries: ["股票 分析 评论", "资讯 报道"],
+    sites: "stcn.com",
+  },
+  {
+    name: "第一财经",
+    queries: ["股票 分析 评论", "资讯 报道"],
+    sites: "yicai.com",
+  },
+  {
+    name: "凤凰财经",
+    queries: ["股票 讨论 评论", "分析 观点"],
+    sites: "finance.ifeng.com",
+  },
+  {
+    name: "网易财经",
+    queries: ["股票 讨论 评论", "分析 观点"],
+    sites: "money.163.com",
+  },
 ];
 
 async function searchPlatformComments(
