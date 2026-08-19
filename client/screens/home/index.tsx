@@ -248,7 +248,7 @@ export default function HomePage() {
           <View style={styles.sectionHeader}>
             <View style={styles.sectionHeaderLeft}>
               <Text style={styles.sectionLabel}>HOT STOCKS</Text>
-              <Text style={styles.sectionTitle}>今日换手率排行</Text>
+              <Text style={styles.sectionTitle}>最热榜</Text>
             </View>
             <Pressable onPress={loadHotStocks} disabled={isLoadingHotStocks}>
               <Text style={styles.refreshBtn}>
@@ -259,7 +259,7 @@ export default function HomePage() {
           {isLoadingHotStocks && hotStocks.length === 0 ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator color="#00F0FF" />
-              <Text style={styles.loadingText}>获取换手率排行...</Text>
+              <Text style={styles.loadingText}>获取最热榜...</Text>
             </View>
           ) : (
             <FlatList
