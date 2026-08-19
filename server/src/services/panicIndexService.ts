@@ -3,6 +3,7 @@ import { LLMClient, Config as LLMConfig, HeaderUtils as LLMHeaderUtils } from "c
 import { fetchMarketIndicators, calculateMarketPanicScore, type MarketIndicators } from "./marketIndicatorsService";
 import { analyzeInstitutionalReports, type InstitutionalAnalysis } from "./institutionalAnalysisService";
 import { analyzeFundFlow, type FundFlowAnalysis } from "./fundFlowService";
+import { searchCrisisIndicators, type CrisisIndicator } from "./crisisIndicatorService";
 
 export interface PlatformComment {
   platform: string;
@@ -29,6 +30,7 @@ export interface PanicIndexResult {
   retailSentiment?: string; // 散户情绪描述
   institutionalSentiment?: string; // 机构情绪描述
   fundFlowAnalysis?: FundFlowAnalysis; // 主力资金流向分析
+  crisisIndicator?: CrisisIndicator; // 极端恐慌指标（自杀/轻生事件）
   platformData: {
     platform: string;
     commentCount: number;
@@ -373,9 +375,24 @@ export async function analyzePanicIndex(
     // 主力流入 = 市场过热 = 卖出信号 = 低恐慌指数
     fundFlowScore = 30 - Math.min(fundFlowAnalysis.inflowCount * 10, 20);
   }
+
+  // Step 5.5: Search crisis indicators (suicide/extreme panic events)
+  const crisisIndicator = await searchCrisisIndicators(stockName);
+  
+  // Crisis indicator score: more crisis events = higher panic
+  let crisisScore = 50; // 默认中性
+  if (crisisIndicator.crisisLevel === "extreme") {
+    crisisScore = 95;
+  } else if (crisisIndicator.crisisLevel === "high") {
+    crisisScore = 80;
+  } else if (crisisIndicator.crisisLevel === "medium") {
+    crisisScore = 65;
+  } else {
+    crisisScore = 30; // 低危机 = 市场正常
+  }
   
   const panicIndex = Math.round(
-    sentimentScore * 0.5 + marketScore * 0.15 + institutionalScore * 0.15 + fundFlowScore * 0.2
+    sentimentScore * 0.45 + marketScore * 0.15 + institutionalScore * 0.15 + fundFlowScore * 0.2 + crisisScore * 0.05
   );
 
   const recommendation = getRecommendation(panicIndex);
@@ -397,6 +414,7 @@ export async function analyzePanicIndex(
     retailSentiment: sentimentResult.retailSentiment || "",
     institutionalSentiment: sentimentResult.institutionalSentiment || "",
     fundFlowAnalysis,
+    crisisIndicator,
     platformData,
     marketIndicators,
     institutionalAnalysis,

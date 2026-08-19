@@ -352,6 +352,15 @@ export default function ResultPage() {
                 {data.overallSentiment}
               </Text>
               <Text style={styles.analysisSummary}>{data.analysisSummary}</Text>
+
+              {/* Buffett Quote */}
+              <View style={styles.buffettQuoteCard}>
+                <Text style={styles.buffettQuoteIcon}></Text>
+                <Text style={styles.buffettQuoteText}>
+                  "别人恐惧时我贪婪，别人贪婪时我恐惧"
+                </Text>
+                <Text style={styles.buffettQuoteAuthor}>— 沃伦·巴菲特</Text>
+              </View>
             </View>
 
             {/* Recommendation */}
@@ -852,6 +861,37 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
     paddingHorizontal: 8,
+  },
+  buffettQuoteCard: {
+    backgroundColor: 'rgba(0,240,255,0.03)',
+    borderWidth: 1,
+    borderColor: 'rgba(0,240,255,0.15)',
+    borderRadius: 8,
+    padding: 16,
+    marginTop: 20,
+    borderLeftWidth: 3,
+    borderLeftColor: '#00F0FF',
+  },
+  buffettQuoteIcon: {
+    fontSize: 24,
+    color: '#00F0FF',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  buffettQuoteText: {
+    fontSize: 16,
+    color: '#00F0FF',
+    textAlign: 'center',
+    lineHeight: 24,
+    fontWeight: '600',
+    fontStyle: 'italic',
+  },
+  buffettQuoteAuthor: {
+    fontSize: 12,
+    color: '#555570',
+    textAlign: 'right',
+    marginTop: 8,
+    fontStyle: 'italic',
   },
   recommendationCard: {
     backgroundColor: '#12121A',
