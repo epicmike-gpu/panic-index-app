@@ -94,7 +94,7 @@ async function searchPlatformComments(
       const options: Parameters<typeof client.advancedSearch>[1] = {
         count: 15,
         needSummary: false,
-        timeRange: "1m",
+        timeRange: "1d",
       };
       // 金融平台使用 sites 限定域名搜索
       if (platform.sites) {

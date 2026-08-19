@@ -47,7 +47,7 @@ export async function searchFundFlowArticles(
       const response = await searchClient.advancedSearch(query, {
         count: 10,
         needSummary: false,
-        timeRange: "1m",
+        timeRange: "1d",
       });
 
       if (response.web_items) {
