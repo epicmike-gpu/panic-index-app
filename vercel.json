@@ -2,7 +2,7 @@
   "buildCommand": "cd client && npx expo export --platform web",
   "outputDirectory": "client/dist",
   "installCommand": "pnpm install",
-  "framework": "expo",
+  "framework": null,
   "rewrites": [
     {
       "source": "/api/(.*)",
