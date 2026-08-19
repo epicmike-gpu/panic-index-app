@@ -77,6 +77,26 @@ interface InstitutionalAnalysis {
   summary: string;
 }
 
+interface FundFlowArticle {
+  platform: string;
+  title: string;
+  snippet: string;
+  url: string;
+  publishTime: string;
+  fundFlow: 'inflow' | 'outflow' | 'neutral';
+  amount: string;
+}
+
+interface FundFlowAnalysis {
+  totalArticles: number;
+  inflowCount: number;
+  outflowCount: number;
+  neutralCount: number;
+  netFlow: 'inflow' | 'outflow' | 'neutral';
+  analysis: string;
+  articles: FundFlowArticle[];
+}
+
 interface PanicIndexData {
   stockName: string;
   panicIndex: number;
@@ -84,6 +104,7 @@ interface PanicIndexData {
   overallSentiment: string;
   retailSentiment?: string; // 散户情绪描述
   institutionalSentiment?: string; // 机构情绪描述
+  fundFlowAnalysis?: FundFlowAnalysis; // 主力资金流向分析
   platformData: PlatformData[];
   marketIndicators: MarketIndicators;
   institutionalAnalysis: InstitutionalAnalysis;
@@ -408,6 +429,60 @@ export default function ResultPage() {
                 <View style={styles.sentimentTip}>
                   <Text style={styles.sentimentTipText}>
                     逆向投资：散户恐慌时买入，机构乐观时卖出
+                  </Text>
+                </View>
+              </View>
+            )}
+
+            {/* Fund Flow Analysis */}
+            {data.fundFlowAnalysis && data.fundFlowAnalysis.totalArticles > 0 && (
+              <View style={styles.fundFlowCard}>
+                <Text style={styles.sectionLabel}>FUND FLOW ANALYSIS</Text>
+                <Text style={styles.sectionTitle}>主力资金动向</Text>
+                
+                <View style={styles.fundFlowStats}>
+                  <View style={styles.fundFlowStat}>
+                    <Text style={styles.fundFlowStatLabel}>净流入</Text>
+                    <Text style={[styles.fundFlowStatValue, { color: '#00F0FF' }]}>
+                      {data.fundFlowAnalysis.inflowCount}篇
+                    </Text>
+                  </View>
+                  <View style={styles.fundFlowStat}>
+                    <Text style={styles.fundFlowStatLabel}>净流出</Text>
+                    <Text style={[styles.fundFlowStatValue, { color: '#FF006E' }]}>
+                      {data.fundFlowAnalysis.outflowCount}篇
+                    </Text>
+                  </View>
+                  <View style={styles.fundFlowStat}>
+                    <Text style={styles.fundFlowStatLabel}>整体</Text>
+                    <Text style={[
+                      styles.fundFlowStatValue,
+                      { 
+                        color: data.fundFlowAnalysis.netFlow === 'outflow' 
+                          ? '#00F0FF' 
+                          : data.fundFlowAnalysis.netFlow === 'inflow'
+                            ? '#FF006E'
+                            : '#FFB800'
+                      }
+                    ]}>
+                      {data.fundFlowAnalysis.netFlow === 'outflow' 
+                        ? '净流出' 
+                        : data.fundFlowAnalysis.netFlow === 'inflow'
+                          ? '净流入'
+                          : '中性'}
+                    </Text>
+                  </View>
+                </View>
+                
+                <View style={styles.fundFlowAnalysis}>
+                  <Text style={styles.fundFlowAnalysisText}>
+                    {data.fundFlowAnalysis.analysis}
+                  </Text>
+                </View>
+                
+                <View style={styles.fundFlowTip}>
+                  <Text style={styles.fundFlowTipText}>
+                    逆向操作：主力流出→买入信号，主力流入→卖出信号
                   </Text>
                 </View>
               </View>
@@ -873,6 +948,53 @@ const styles = StyleSheet.create({
     borderTopColor: 'rgba(0,240,255,0.06)',
   },
   sentimentTipText: {
+    fontSize: 12,
+    color: '#00F0FF',
+    textAlign: 'center',
+  },
+  fundFlowCard: {
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(0,240,255,0.1)',
+    marginHorizontal: 16,
+    marginBottom: 24,
+  },
+  fundFlowStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 16,
+  },
+  fundFlowStat: {
+    alignItems: 'center',
+  },
+  fundFlowStatLabel: {
+    fontSize: 12,
+    color: '#888899',
+    marginBottom: 4,
+  },
+  fundFlowStatValue: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  fundFlowAnalysis: {
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
+  },
+  fundFlowAnalysisText: {
+    fontSize: 13,
+    color: '#AAAAAA',
+    lineHeight: 20,
+  },
+  fundFlowTip: {
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,240,255,0.06)',
+  },
+  fundFlowTipText: {
     fontSize: 12,
     color: '#00F0FF',
     textAlign: 'center',

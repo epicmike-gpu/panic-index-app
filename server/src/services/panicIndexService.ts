@@ -2,6 +2,7 @@ import { SearchClient, Config as SearchConfig, HeaderUtils as SearchHeaderUtils 
 import { LLMClient, Config as LLMConfig, HeaderUtils as LLMHeaderUtils } from "coze-coding-dev-sdk";
 import { fetchMarketIndicators, calculateMarketPanicScore, type MarketIndicators } from "./marketIndicatorsService";
 import { analyzeInstitutionalReports, type InstitutionalAnalysis } from "./institutionalAnalysisService";
+import { analyzeFundFlow, type FundFlowAnalysis } from "./fundFlowService";
 
 export interface PlatformComment {
   platform: string;
@@ -27,6 +28,7 @@ export interface PanicIndexResult {
   overallSentiment: string;
   retailSentiment?: string; // 散户情绪描述
   institutionalSentiment?: string; // 机构情绪描述
+  fundFlowAnalysis?: FundFlowAnalysis; // 主力资金流向分析
   platformData: {
     platform: string;
     commentCount: number;
@@ -308,12 +310,26 @@ export async function analyzePanicIndex(
     forwardHeaders
   );
 
-  // Step 6: Calculate combined panic index (60% sentiment + 20% market + 20% institutional)
+  // Step 5.5: Analyze fund flow (主力动向)
+  const fundFlowAnalysis = await analyzeFundFlow(stockName, stockCode);
+
+  // Step 6: Calculate combined panic index (50% sentiment + 15% market + 15% institutional + 20% fund flow)
   const sentimentScore = sentimentResult.score;
   const marketScore = calculateMarketPanicScore(marketIndicators);
   const institutionalScore = institutionalAnalysis.institutionalSentimentScore;
+  
+  // 主力资金流向评分：主力流出 = 恐慌信号（高分），主力流入 = 过热信号（低分）
+  let fundFlowScore = 50; // 默认中性
+  if (fundFlowAnalysis.netFlow === "outflow") {
+    // 主力流出 = 散户恐慌 = 买入信号 = 高恐慌指数
+    fundFlowScore = 70 + Math.min(fundFlowAnalysis.outflowCount * 10, 30);
+  } else if (fundFlowAnalysis.netFlow === "inflow") {
+    // 主力流入 = 市场过热 = 卖出信号 = 低恐慌指数
+    fundFlowScore = 30 - Math.min(fundFlowAnalysis.inflowCount * 10, 20);
+  }
+  
   const panicIndex = Math.round(
-    sentimentScore * 0.6 + marketScore * 0.2 + institutionalScore * 0.2
+    sentimentScore * 0.5 + marketScore * 0.15 + institutionalScore * 0.15 + fundFlowScore * 0.2
   );
 
   const recommendation = getRecommendation(panicIndex);
@@ -334,10 +350,11 @@ export async function analyzePanicIndex(
     overallSentiment: getOverallSentimentLabel(panicIndex),
     retailSentiment: sentimentResult.retailSentiment || "",
     institutionalSentiment: sentimentResult.institutionalSentiment || "",
+    fundFlowAnalysis,
     platformData,
     marketIndicators,
     institutionalAnalysis,
-    analysisSummary: `${sentimentResult.summary} | 机构观点：${institutionalAnalysis.summary}`,
+    analysisSummary: `${sentimentResult.summary} | 机构观点：${institutionalAnalysis.summary} | 主力动向：${fundFlowAnalysis.analysis}`,
     analyzedAt: new Date().toISOString(),
   };
 }
