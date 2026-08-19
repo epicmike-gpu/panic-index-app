@@ -96,7 +96,7 @@ async function fetchLimitUpDown(customHeaders?: Record<string, string>): Promise
 
     const response = await client.advancedSearch("今日 A 股涨停跌停数量", {
       count: 5,
-      timeRange: "1d",
+      timeRange: "7d",
       needSummary: false,
     });
 

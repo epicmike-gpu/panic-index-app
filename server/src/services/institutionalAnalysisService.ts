@@ -65,7 +65,7 @@ async function searchInstitutionalReports(
     client.advancedSearch(keyword, {
       count: 10,
       needSummary: false,
-      timeRange: "1d",
+      timeRange: "7d",
     }).catch((err: Error) => {
       console.error(`搜索失败 [${keyword}]:`, err);
       return null;
