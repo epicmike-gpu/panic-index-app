@@ -9,6 +9,7 @@
       "ESNext.Promise"
     ],
     "types": ["node"],
+    "typeRoots": ["./node_modules/@types"],
     "module": "preserve",
     "target": "es2024",
 
