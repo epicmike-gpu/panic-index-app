@@ -1,12 +1,12 @@
 {
-  "buildCommand": "cd client && npx expo export --platform web",
+  "buildCommand": "cd server && pnpm run build:api && cd ../client && npx expo export --platform web",
   "outputDirectory": "client/dist",
   "installCommand": "pnpm install",
   "framework": null,
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/api/index.ts"
+      "destination": "/api/dist/index.js"
     },
     {
       "source": "/(.*)",
