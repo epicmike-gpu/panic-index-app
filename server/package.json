@@ -4,7 +4,6 @@
   "type": "module",
   "scripts": {
     "build": "node build.js",
-    "build:api": "node build-api.js",
     "dev": "bash ../.cozeproj/scripts/server_dev_run.sh",
     "preinstall": "npx only-allow pnpm",
     "start": "NODE_ENV=production PORT=${PORT:-5000} node dist/index.js",
