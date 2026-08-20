@@ -189,8 +189,8 @@ export async function analyzeFundFlow(
     };
   }
 
-  // 2. 使用 LLM 分析每篇文章的资金流向（限制最多分析 10 篇）
-  const articlesToAnalyze = articles.slice(0, 10);
+  // 2. 使用 LLM 分析每篇文章的资金流向（限制最多分析 5 篇，控制耗时）
+  const articlesToAnalyze = articles.slice(0, 5);
   console.log(`分析前 ${articlesToAnalyze.length} 篇文章的资金流向...`);
 
   const analyzedArticles = await Promise.all(

@@ -145,6 +145,14 @@ function isWithinLastWeek(snippet: string): boolean {
   return itemDate >= oneWeekAgo;
 }
 
+// 超时保护：防止单个任务卡住导致整体超过 Vercel 60s 限制
+function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms)),
+  ]);
+}
+
 async function searchPlatformComments(
   stockName: string,
   platform: typeof PLATFORMS[number],
@@ -331,9 +339,9 @@ export async function analyzePanicIndex(
   market?: number,
   forwardHeaders?: Record<string, string>
 ): Promise<PanicIndexResult> {
-  // Step 1: Search comments from all platforms in parallel
+  // Step 1: Search comments from all platforms in parallel (with 20s timeout each)
   const searchPromises = PLATFORMS.map((platform) =>
-    searchPlatformComments(stockName, platform, forwardHeaders)
+    withTimeout(searchPlatformComments(stockName, platform, forwardHeaders), 20000, [])
   );
   const platformResults = await Promise.all(searchPromises);
 
@@ -350,15 +358,8 @@ export async function analyzePanicIndex(
     };
   });
 
-  // Step 3: Analyze sentiment using LLM
-  const sentimentResult = await analyzeSentiment(
-    stockName,
-    allComments,
-    forwardHeaders
-  );
-
-  // Step 4: Fetch market indicators if stock code is provided
-  let marketIndicators: MarketIndicators = {
+  // Step 3-6: 并行执行所有独立分析任务（大幅缩短总耗时）
+  const defaultMarketIndicators: MarketIndicators = {
     marginBalance: { value: "暂无数据", change: "0%", trend: "stable" },
     volume: { value: "暂无数据", turnoverRate: "暂无数据", trend: "stable" },
     limitUpDown: { upCount: 0, downCount: 0, ratio: "暂无数据" },
@@ -366,44 +367,46 @@ export async function analyzePanicIndex(
     socialHeat: { score: 0, trend: "stable" },
   };
 
-  if (stockCode && market !== undefined) {
-    marketIndicators = await fetchMarketIndicators(
-      stockName,
-      stockCode,
-      market,
-      allComments.length,
-      forwardHeaders
-    );
-  }
+  const marketPromise =
+    stockCode && market !== undefined
+      ? fetchMarketIndicators(stockName, stockCode, market, allComments.length, forwardHeaders)
+      : Promise.resolve(defaultMarketIndicators);
 
-  // Step 5: Analyze institutional reports
-  const institutionalAnalysis = await analyzeInstitutionalReports(
-    stockName,
-    stockCode,
-    forwardHeaders
-  );
+  const [sentimentResult, marketIndicators, institutionalAnalysis, fundFlowAnalysis, crisisIndicator] =
+    await Promise.all([
+      withTimeout(analyzeSentiment(stockName, allComments, forwardHeaders), 25000, {
+        sentiment: "neutral" as const, score: 50, summary: "情绪分析超时", keyPhrases: [],
+        retailSentiment: "", institutionalSentiment: "",
+      }),
+      withTimeout(marketPromise, 15000, defaultMarketIndicators),
+      withTimeout(analyzeInstitutionalReports(stockName, stockCode, forwardHeaders), 25000, {
+        totalReports: 0, positiveCount: 0, neutralCount: 0, negativeCount: 0,
+        extremeNegativeCount: 0, institutionalSentimentScore: 50, keyInstitutions: [],
+        reports: [], summary: "机构分析超时",
+      }),
+      withTimeout(analyzeFundFlow(stockName, stockCode), 25000, {
+        totalArticles: 0, inflowCount: 0, outflowCount: 0, neutralCount: 0,
+        netFlow: "neutral" as const, analysis: "资金流向分析超时", articles: [],
+      }),
+      withTimeout(searchCrisisIndicators(stockName), 15000, {
+        totalArticles: 0, suicideCases: 0, crisisLevel: "low" as const,
+        analysis: "危机指标查询超时", articles: [],
+      }),
+    ]);
 
-  // Step 5.5: Analyze fund flow (主力动向)
-  const fundFlowAnalysis = await analyzeFundFlow(stockName, stockCode);
-
-  // Step 6: Calculate combined panic index (50% sentiment + 15% market + 15% institutional + 20% fund flow)
+  // Step 6: Calculate combined panic index (45% sentiment + 15% market + 15% institutional + 20% fund flow + 5% crisis)
   const sentimentScore = sentimentResult.score;
   const marketScore = calculateMarketPanicScore(marketIndicators);
   const institutionalScore = institutionalAnalysis.institutionalSentimentScore;
-  
+
   // 主力资金流向评分：主力流出 = 恐慌信号（高分），主力流入 = 过热信号（低分）
   let fundFlowScore = 50; // 默认中性
   if (fundFlowAnalysis.netFlow === "outflow") {
-    // 主力流出 = 散户恐慌 = 买入信号 = 高恐慌指数
     fundFlowScore = 70 + Math.min(fundFlowAnalysis.outflowCount * 10, 30);
   } else if (fundFlowAnalysis.netFlow === "inflow") {
-    // 主力流入 = 市场过热 = 卖出信号 = 低恐慌指数
     fundFlowScore = 30 - Math.min(fundFlowAnalysis.inflowCount * 10, 20);
   }
 
-  // Step 5.5: Search crisis indicators (suicide/extreme panic events)
-  const crisisIndicator = await searchCrisisIndicators(stockName);
-  
   // Crisis indicator score: more crisis events = higher panic
   let crisisScore = 50; // 默认中性
   if (crisisIndicator.crisisLevel === "extreme") {
