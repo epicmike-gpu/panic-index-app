@@ -101,7 +101,7 @@ interface FundFlowAnalysis {
 interface PanicIndexData {
   stockName: string;
   panicIndex: number;
-  recommendation: 'buy' | 'hold' | 'sell';
+  sentimentLevel: 'pessimistic' | 'neutral' | 'optimistic'; // 市场情绪等级（仅供参考）
   overallSentiment: string;
   retailSentiment?: string; // 散户情绪描述
   institutionalSentiment?: string; // 机构情绪描述
@@ -120,23 +120,24 @@ function getPanicColor(score: number): string {
   return '#00FF88';
 }
 
-function getRecommendationText(rec: string): string {
-  switch (rec) {
-    case 'buy':
-      return '逆向买入信号';
-    case 'sell':
-      return '逆向卖出信号';
+// 市场情绪描述：仅反映舆情情绪状态，不构成投资建议
+function getSentimentText(level: string): string {
+  switch (level) {
+    case 'pessimistic':
+      return '市场情绪悲观';
+    case 'optimistic':
+      return '市场情绪乐观';
     default:
-      return '建议持有观望';
+      return '市场情绪中性';
   }
 }
 
-function getRecommendationColor(rec: string): string {
-  switch (rec) {
-    case 'buy':
-      return '#00FF88';
-    case 'sell':
+function getSentimentColor(level: string): string {
+  switch (level) {
+    case 'pessimistic':
       return '#FF003C';
+    case 'optimistic':
+      return '#00FF88';
     default:
       return '#FFB800';
   }
@@ -364,22 +365,18 @@ export default function ResultPage() {
               </View>
             </View>
 
-            {/* Recommendation */}
+            {/* Sentiment Reference (情绪参考，非投资建议) */}
             <View style={styles.recommendationCard}>
               <View style={styles.recommendationHeader}>
                 <Text style={styles.recommendationLabel}>
-                  INVESTMENT SIGNAL
+                  SENTIMENT REFERENCE
                 </Text>
                 <View
                   style={[
                     styles.recommendationBadge,
                     {
-                      borderColor: getRecommendationColor(
-                        data.recommendation
-                      ),
-                      shadowColor: getRecommendationColor(
-                        data.recommendation
-                      ),
+                      borderColor: getSentimentColor(data.sentimentLevel),
+                      shadowColor: getSentimentColor(data.sentimentLevel),
                     },
                   ]}
                 >
@@ -387,21 +384,21 @@ export default function ResultPage() {
                     style={[
                       styles.recommendationText,
                       {
-                        color: getRecommendationColor(data.recommendation),
+                        color: getSentimentColor(data.sentimentLevel),
                       },
                     ]}
                   >
-                    {getRecommendationText(data.recommendation)}
+                    {getSentimentText(data.sentimentLevel)}
                   </Text>
                 </View>
               </View>
               <View style={styles.recommendationDesc}>
                 <Text style={styles.recommendationDescText}>
-                  {data.recommendation === 'buy'
-                    ? '散户情绪极度恐慌，评论充满绝望与骂人声音。根据逆向投资理论，散户恐慌时往往是买入时机。'
-                    : data.recommendation === 'sell'
-                      ? '机构观点积极乐观，散户情绪狂热追涨。注意过热风险，考虑适时获利了结。'
-                      : '市场情绪中性，多空分歧较大。建议继续观望，等待更明确的信号。'}
+                  {data.sentimentLevel === 'pessimistic'
+                    ? '当前散户评论情绪偏悲观，负面与绝望声音较多。历史经验表明极端悲观情绪有时与反向机会相关，但这仅为情绪观察，不构成任何买卖依据。'
+                    : data.sentimentLevel === 'optimistic'
+                      ? '当前市场情绪偏乐观，正面与追涨声音较多。历史经验表明情绪过热时波动风险可能上升，但这仅为情绪观察，不构成任何买卖依据。'
+                      : '当前市场情绪中性，多空分歧较大。本指标仅反映舆情情绪状态，不构成任何买卖依据。'}
                 </Text>
               </View>
             </View>
@@ -438,7 +435,7 @@ export default function ResultPage() {
                 
                 <View style={styles.sentimentTip}>
                   <Text style={styles.sentimentTipText}>
-                    逆向投资：散户恐慌时买入，机构乐观时卖出
+                    情绪观察：散户与机构情绪对比，仅供研究参考
                   </Text>
                 </View>
               </View>
@@ -492,7 +489,7 @@ export default function ResultPage() {
                 
                 <View style={styles.fundFlowTip}>
                   <Text style={styles.fundFlowTipText}>
-                    逆向操作：主力流出→买入信号，主力流入→卖出信号
+                    资金流向仅为公开资讯整理，不代表任何操作建议
                   </Text>
                 </View>
               </View>
@@ -769,7 +766,10 @@ export default function ResultPage() {
               <View style={styles.disclaimerContent}>
                 <Text style={styles.disclaimerTitle}>免责声明</Text>
                 <Text style={styles.disclaimerText}>
-                  本应用提供的恐慌指数和分析结果仅供参考，不构成任何投资建议。投资有风险，入市需谨慎。本应用不对因使用本应用数据而导致的任何损失承担责任。
+                  本应用为舆情情绪研究工具，所有指数、情绪等级与分析结果均基于公开信息的自动化整理，仅供参考与研究之用，不构成任何投资建议、要约或劝诱。本应用不提供证券投资咨询服务。
+                </Text>
+                <Text style={styles.disclaimerText}>
+                  投资有风险，入市需谨慎。任何投资决策应基于您自身的独立判断，并咨询持牌专业顾问。本应用不对因使用本应用数据而导致的任何损失承担责任。
                 </Text>
                 <Text style={styles.disclaimerText}>
                   数据来源：微博、雪球、东方财富、同花顺、新浪财经等公开平台。

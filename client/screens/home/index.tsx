@@ -175,7 +175,7 @@ export default function HomePage() {
           </View>
           <Text style={styles.headerTitle}>恐慌指数</Text>
           <Text style={styles.headerSubtitle}>
-            全网舆情分析 · 逆向投资决策
+            全网舆情情绪观察 · 仅供参考
           </Text>
           <View style={styles.neonLine} />
         </View>
@@ -295,18 +295,18 @@ export default function HomePage() {
           <View style={styles.infoCard}>
             <Text style={styles.infoIcon}>↑</Text>
             <View style={styles.infoText}>
-              <Text style={styles.infoTitle}>恐慌时买入</Text>
+              <Text style={styles.infoTitle}>悲观情绪</Text>
               <Text style={styles.infoDesc}>
-                评论消极绝望时，市场可能过度反应
+                评论消极时，指数偏高，反映市场悲观
               </Text>
             </View>
           </View>
           <View style={styles.infoCard}>
             <Text style={[styles.infoIcon, { color: '#FF003C' }]}>↓</Text>
             <View style={styles.infoText}>
-              <Text style={styles.infoTitle}>乐观时卖出</Text>
+              <Text style={styles.infoTitle}>乐观情绪</Text>
               <Text style={styles.infoDesc}>
-                评论积极看好时，注意市场过热风险
+                评论积极时，指数偏低，反映市场乐观
               </Text>
             </View>
           </View>

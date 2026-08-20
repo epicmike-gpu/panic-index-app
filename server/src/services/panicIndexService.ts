@@ -26,7 +26,7 @@ export interface SentimentResult {
 export interface PanicIndexResult {
   stockName: string;
   panicIndex: number; // 0-100
-  recommendation: "buy" | "hold" | "sell";
+  sentimentLevel: "pessimistic" | "neutral" | "optimistic"; // 市场情绪等级（仅供参考，非投资建议）
   overallSentiment: string;
   retailSentiment?: string; // 散户情绪描述
   institutionalSentiment?: string; // 机构情绪描述
@@ -317,21 +317,19 @@ ${commentsText}
   }
 }
 
-function getRecommendation(panicScore: number): "buy" | "hold" | "sell" {
-  // 逆向投资逻辑：
-  // 散户恐慌绝望（高分）→ 买入信号
-  // 机构乐观+散户狂热（低分）→ 卖出信号
-  if (panicScore >= 70) return "buy"; // 散户极度恐慌 → 买入
-  if (panicScore <= 30) return "sell"; // 机构乐观+散户狂热 → 卖出
-  return "hold"; // 中性 → 持有
+// 市场情绪等级：仅描述当前舆情情绪状态，不构成任何投资建议
+function getSentimentLevel(panicScore: number): "pessimistic" | "neutral" | "optimistic" {
+  if (panicScore >= 70) return "pessimistic"; // 市场情绪悲观
+  if (panicScore <= 30) return "optimistic"; // 市场情绪乐观
+  return "neutral"; // 市场情绪中性
 }
 
 function getOverallSentimentLabel(panicScore: number): string {
-  // 逆向投资逻辑标签
-  if (panicScore >= 76) return "散户恐慌绝望（买入信号）";
-  if (panicScore >= 51) return "散户消极悲观";
-  if (panicScore >= 26) return "市场中性观望";
-  return "机构乐观+散户狂热（卖出信号）";
+  // 中性情绪描述，不含买卖指令
+  if (panicScore >= 76) return "市场情绪极度悲观";
+  if (panicScore >= 51) return "市场情绪偏悲观";
+  if (panicScore >= 26) return "市场情绪中性";
+  return "市场情绪偏乐观";
 }
 
 export async function analyzePanicIndex(
@@ -424,7 +422,7 @@ export async function analyzePanicIndex(
     sentimentScore * 0.45 + marketScore * 0.15 + institutionalScore * 0.15 + fundFlowScore * 0.2 + crisisScore * 0.05
   );
 
-  const recommendation = getRecommendation(panicIndex);
+  const sentimentLevel = getSentimentLevel(panicIndex);
 
   // Step 6: Assign sentiment to each platform based on overall analysis
   platformData.forEach((pd) => {
@@ -438,7 +436,7 @@ export async function analyzePanicIndex(
   return {
     stockName,
     panicIndex,
-    recommendation,
+    sentimentLevel,
     overallSentiment: getOverallSentimentLabel(panicIndex),
     retailSentiment: sentimentResult.retailSentiment || "",
     institutionalSentiment: sentimentResult.institutionalSentiment || "",
