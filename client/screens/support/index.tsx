@@ -3,8 +3,8 @@ import { Screen } from '@/components/Screen';
 import { useSafeRouter } from '@/hooks/useSafeRouter';
 import { FontAwesome6 } from '@expo/vector-icons';
 
-// TODO: 替换为你的真实支持邮箱
-const SUPPORT_EMAIL = 'support.stockheat@gmail.com';
+// 支持邮箱
+const SUPPORT_EMAIL = '13928261366@163.com';
 
 export default function SupportPage() {
   const router = useSafeRouter();
