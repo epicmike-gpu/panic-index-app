@@ -1,9 +1,9 @@
 import { SearchClient, Config as SearchConfig, HeaderUtils as SearchHeaderUtils } from "coze-coding-dev-sdk";
 import { LLMClient, Config as LLMConfig, HeaderUtils as LLMHeaderUtils } from "coze-coding-dev-sdk";
-import { fetchMarketIndicators, calculateMarketPanicScore, type MarketIndicators } from "./marketIndicatorsService";
-import { analyzeInstitutionalReports, type InstitutionalAnalysis } from "./institutionalAnalysisService";
-import { analyzeFundFlow, type FundFlowAnalysis } from "./fundFlowService";
-import { searchCrisisIndicators, type CrisisIndicator } from "./crisisIndicatorService";
+import { fetchMarketIndicators, calculateMarketPanicScore, type MarketIndicators } from "./marketIndicatorsService.js";
+import { analyzeInstitutionalReports, type InstitutionalAnalysis } from "./institutionalAnalysisService.js";
+import { analyzeFundFlow, type FundFlowAnalysis } from "./fundFlowService.js";
+import { searchCrisisIndicators, type CrisisIndicator } from "./crisisIndicatorService.js";
 
 export interface PlatformComment {
   platform: string;
