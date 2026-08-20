@@ -3,13 +3,14 @@
   "outputDirectory": "client/dist",
   "installCommand": "pnpm install",
   "framework": null,
+  "functions": {
+    "api/v1/panic-index/analyze.ts": {
+      "maxDuration": 60
+    }
+  },
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/index.ts"
-    },
-    {
-      "source": "/(.*)",
+      "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
   ]
