@@ -1,6 +1,7 @@
 {
   "name": "expo-express-monorepo",
   "private": true,
+  "type": "module",
   "version": "0.0.0",
   "scripts": {
     "dev": "bash .cozeproj/scripts/dev_run.sh",
