@@ -1,5 +1,6 @@
 import { SearchClient, Config } from "coze-coding-dev-sdk";
 import { LLMClient, Config as LLMConfig } from "coze-coding-dev-sdk";
+import { withRetry } from "../utils/rateLimit.js";
 
 const config = new Config();
 const searchClient = new SearchClient(config);
@@ -57,11 +58,10 @@ export async function searchFundFlowArticles(
 
   for (const query of searchQueries) {
     try {
-      const response = await searchClient.advancedSearch(query, {
-        count: 10,
-        needSummary: false,
-        timeRange: "7d",
-      });
+      const response = await withRetry(
+        () => searchClient.advancedSearch(query, { count: 10, needSummary: false, timeRange: "7d" }),
+        2, 1500
+      );
 
       if (response.web_items) {
         for (const item of response.web_items) {

@@ -1,0 +1,297 @@
+2026-08-20 10:33:04.467 [info] 找到 30 条机构报告
+2026-08-20 10:33:03.231 [error] Limit up/down fetch error: eT [APIError]: Search failed: [object Object]
+    at ek.search (file:///var/task/node_modules/.pnpm/coze-coding-dev-sdk@0.7.24_openai@6.16.0_ws@8.19.0_zod@4.3.6__ws@8.19.0/node_modules/coze-coding-dev-sdk/dist/esm/131.mjs:1:23201)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async fetchLimitUpDown (/vercel/path0/server/src/services/marketIndicatorsService.ts:99:22)
+    at async Promise.all (index 2)
+    at async fetchMarketIndicators (/vercel/path0/server/src/services/marketIndicatorsService.ts:190:61)
+    at async Promise.all (index 1)
+    at async analyzePanicIndex (/vercel/path0/server/src/services/panicIndexService.ts:376:5)
+    at async handler (/vercel/path0/api/v1/panic-index/analyze.ts:53:20)
+    at async r (/opt/rust/nodejs.js:2:16316)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:2:12267) {
+  statusCode: 500,
+  response: {
+    CodeN: 0,
+    Code: 'ErrTooManyRequests',
+    Message: '[临时限流] 请求过于频繁，请稍后重试, request id: 202608201833029F62556777F932C03119'
+  }
+}
+2026-08-20 10:33:03.234 [error] 搜索失败 [双英集团 财联社 分析]: eT [APIError]: Search failed: [object Object]
+    at ek.search (file:///var/task/node_modules/.pnpm/coze-coding-dev-sdk@0.7.24_openai@6.16.0_ws@8.19.0_zod@4.3.6__ws@8.19.0/node_modules/coze-coding-dev-sdk/dist/esm/131.mjs:1:23201)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async Promise.all (index 1)
+    at async searchInstitutionalReports (/vercel/path0/server/src/services/institutionalAnalysisService.ts:75:19)
+    at async analyzeInstitutionalReports (/vercel/path0/server/src/services/institutionalAnalysisService.ts:239:19)
+    at async Promise.all (index 2)
+    at async analyzePanicIndex (/vercel/path0/server/src/services/panicIndexService.ts:376:5)
+    at async handler (/vercel/path0/api/v1/panic-index/analyze.ts:53:20)
+    at async r (/opt/rust/nodejs.js:2:16316)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:2:12267) {
+  statusCode: 500,
+  response: {
+    CodeN: 0,
+    Code: 'ErrTooManyRequests',
+    Message: '[临时限流] 请求过于频繁，请稍后重试, request id: 202608201833027CC13548C8A1AE62332D'
+  }
+}
+2026-08-20 10:33:01.041 [error] Search error for query "双英集团 股票 观点": eT [APIError]: Search failed: [object Object]
+    at ek.search (file:///var/task/node_modules/.pnpm/coze-coding-dev-sdk@0.7.24_openai@6.16.0_ws@8.19.0_zod@4.3.6__ws@8.19.0/node_modules/coze-coding-dev-sdk/dist/esm/131.mjs:1:23201)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async searchPlatformComments (/vercel/path0/server/src/services/panicIndexService.ts:183:26)
+    at async Promise.all (index 0)
+    at async analyzePanicIndex (/vercel/path0/server/src/services/panicIndexService.ts:346:27)
+    at async handler (/vercel/path0/api/v1/panic-index/analyze.ts:53:20)
+    at async r (/opt/rust/nodejs.js:2:16316)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:2:12267)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:17:14507) {
+  statusCode: 500,
+  response: {
+    CodeN: 0,
+    Code: 'ErrTooManyRequests',
+    Message: '[临时限流] 请求过于频繁，请稍后重试, request id: 2026082018330024E100AEB63E1972FF92'
+  }
+}
+2026-08-20 10:33:01.824 [error] Search error for query "双英集团 资讯 报道": eT [APIError]: Search failed: [object Object]
+    at ek.search (file:///var/task/node_modules/.pnpm/coze-coding-dev-sdk@0.7.24_openai@6.16.0_ws@8.19.0_zod@4.3.6__ws@8.19.0/node_modules/coze-coding-dev-sdk/dist/esm/131.mjs:1:23201)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async searchPlatformComments (/vercel/path0/server/src/services/panicIndexService.ts:183:26)
+    at async Promise.all (index 9)
+    at async analyzePanicIndex (/vercel/path0/server/src/services/panicIndexService.ts:346:27)
+    at async handler (/vercel/path0/api/v1/panic-index/analyze.ts:53:20)
+    at async r (/opt/rust/nodejs.js:2:16316)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:2:12267)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:17:14507) {
+  statusCode: 500,
+  response: {
+    CodeN: 0,
+    Code: 'ErrTooManyRequests',
+    Message: '[临时限流] 请求过于频繁，请稍后重试, request id: 20260820183301080DCA3397E6DF171C8F'
+  }
+}
+2026-08-20 10:33:06.514 [info] 机构情绪分数: 32
+2026-08-20 10:33:07.367 [info] 找到 4 篇相关文章
+2026-08-20 10:33:07.367 [info] 分析前 4 篇文章的资金流向...
+2026-08-20 10:33:02.838 [info] 开始分析双英集团的机构报告...
+2026-08-20 10:33:02.842 [info] 🔍 搜索 双英集团 的主力资金流向资讯...
+2026-08-20 10:33:00.301 [error] Search error for query "双英集团 股票 分析 评论": eT [APIError]: Search failed: [object Object]
+    at ek.search (file:///var/task/node_modules/.pnpm/coze-coding-dev-sdk@0.7.24_openai@6.16.0_ws@8.19.0_zod@4.3.6__ws@8.19.0/node_modules/coze-coding-dev-sdk/dist/esm/131.mjs:1:23201)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async searchPlatformComments (/vercel/path0/server/src/services/panicIndexService.ts:183:26)
+    at async Promise.all (index 7)
+    at async analyzePanicIndex (/vercel/path0/server/src/services/panicIndexService.ts:346:27)
+    at async handler (/vercel/path0/api/v1/panic-index/analyze.ts:53:20)
+    at async r (/opt/rust/nodejs.js:2:16316)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:2:12267)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:17:14507) {
+  statusCode: 500,
+  response: {
+    CodeN: 0,
+    Code: 'ErrTooManyRequests',
+    Message: '[临时限流] 请求过于频繁，请稍后重试, request id: 20260820183300EECEA555D0E1295A2E65'
+  }
+}
+2026-08-20 10:33:00.313 [error] Search error for query "双英集团 微博": eT [APIError]: Search failed: [object Object]
+    at ek.search (file:///var/task/node_modules/.pnpm/coze-coding-dev-sdk@0.7.24_openai@6.16.0_ws@8.19.0_zod@4.3.6__ws@8.19.0/node_modules/coze-coding-dev-sdk/dist/esm/131.mjs:1:23201)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async searchPlatformComments (/vercel/path0/server/src/services/panicIndexService.ts:183:26)
+    at async Promise.all (index 0)
+    at async analyzePanicIndex (/vercel/path0/server/src/services/panicIndexService.ts:346:27)
+    at async handler (/vercel/path0/api/v1/panic-index/analyze.ts:53:20)
+    at async r (/opt/rust/nodejs.js:2:16316)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:2:12267)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:17:14507) {
+  statusCode: 500,
+  response: {
+    CodeN: 0,
+    Code: 'ErrTooManyRequests',
+    Message: '[临时限流] 请求过于频繁，请稍后重试, request id: 20260820183300694F68AB567DEE190A89'
+  }
+}
+2026-08-20 10:33:00.315 [error] Search error for query "双英集团 股票 讨论 评论": eT [APIError]: Search failed: [object Object]
+    at ek.search (file:///var/task/node_modules/.pnpm/coze-coding-dev-sdk@0.7.24_openai@6.16.0_ws@8.19.0_zod@4.3.6__ws@8.19.0/node_modules/coze-coding-dev-sdk/dist/esm/131.mjs:1:23201)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async searchPlatformComments (/vercel/path0/server/src/services/panicIndexService.ts:183:26)
+    at async Promise.all (index 10)
+    at async analyzePanicIndex (/vercel/path0/server/src/services/panicIndexService.ts:346:27)
+    at async handler (/vercel/path0/api/v1/panic-index/analyze.ts:53:20)
+    at async r (/opt/rust/nodejs.js:2:16316)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:2:12267)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:17:14507) {
+  statusCode: 500,
+  response: {
+    CodeN: 0,
+    Code: 'ErrTooManyRequests',
+    Message: '[临时限流] 请求过于频繁，请稍后重试, request id: 20260820183300FC24380D894E42090D05'
+  }
+}
+2026-08-20 10:33:00.325 [error] Search error for query "双英集团 讨论 分析 观点": eT [APIError]: Search failed: [object Object]
+    at ek.search (file:///var/task/node_modules/.pnpm/coze-coding-dev-sdk@0.7.24_openai@6.16.0_ws@8.19.0_zod@4.3.6__ws@8.19.0/node_modules/coze-coding-dev-sdk/dist/esm/131.mjs:1:23201)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async searchPlatformComments (/vercel/path0/server/src/services/panicIndexService.ts:183:26)
+    at async Promise.all (index 1)
+    at async analyzePanicIndex (/vercel/path0/server/src/services/panicIndexService.ts:346:27)
+    at async handler (/vercel/path0/api/v1/panic-index/analyze.ts:53:20)
+    at async r (/opt/rust/nodejs.js:2:16316)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:2:12267)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:17:14507) {
+  statusCode: 500,
+  response: {
+    CodeN: 0,
+    Code: 'ErrTooManyRequests',
+    Message: '[临时限流] 请求过于频繁，请稍后重试, request id: 202608201833001992F2522EB7A1077906'
+  }
+}
+2026-08-20 10:33:00.326 [error] Search error for query "双英集团 股票 讨论 评论": eT [APIError]: Search failed: [object Object]
+    at ek.search (file:///var/task/node_modules/.pnpm/coze-coding-dev-sdk@0.7.24_openai@6.16.0_ws@8.19.0_zod@4.3.6__ws@8.19.0/node_modules/coze-coding-dev-sdk/dist/esm/131.mjs:1:23201)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async searchPlatformComments (/vercel/path0/server/src/services/panicIndexService.ts:183:26)
+    at async Promise.all (index 14)
+    at async analyzePanicIndex (/vercel/path0/server/src/services/panicIndexService.ts:346:27)
+    at async handler (/vercel/path0/api/v1/panic-index/analyze.ts:53:20)
+    at async r (/opt/rust/nodejs.js:2:16316)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:2:12267)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:17:14507) {
+  statusCode: 500,
+  response: {
+    CodeN: 0,
+    Code: 'ErrTooManyRequests',
+    Message: '[临时限流] 请求过于频繁，请稍后重试, request id: 2026082018330060EFC5737521A10B6C3D'
+  }
+}
+2026-08-20 10:33:00.365 [error] Search error for query "双英集团 讨论 评论 分析": eT [APIError]: Search failed: [object Object]
+    at ek.search (file:///var/task/node_modules/.pnpm/coze-coding-dev-sdk@0.7.24_openai@6.16.0_ws@8.19.0_zod@4.3.6__ws@8.19.0/node_modules/coze-coding-dev-sdk/dist/esm/131.mjs:1:23201)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async searchPlatformComments (/vercel/path0/server/src/services/panicIndexService.ts:183:26)
+    at async Promise.all (index 16)
+    at async analyzePanicIndex (/vercel/path0/server/src/services/panicIndexService.ts:346:27)
+    at async handler (/vercel/path0/api/v1/panic-index/analyze.ts:53:20)
+    at async r (/opt/rust/nodejs.js:2:16316)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:2:12267)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:17:14507) {
+  statusCode: 500,
+  response: {
+    CodeN: 0,
+    Code: 'ErrTooManyRequests',
+    Message: '[临时限流] 请求过于频繁，请稍后重试, request id: 20260820183300CBA43CDA9491E849157A'
+  }
+}
+2026-08-20 10:33:00.381 [error] Search error for query "双英集团 讨论 评论 分析": eT [APIError]: Search failed: [object Object]
+    at ek.search (file:///var/task/node_modules/.pnpm/coze-coding-dev-sdk@0.7.24_openai@6.16.0_ws@8.19.0_zod@4.3.6__ws@8.19.0/node_modules/coze-coding-dev-sdk/dist/esm/131.mjs:1:23201)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async searchPlatformComments (/vercel/path0/server/src/services/panicIndexService.ts:183:26)
+    at async Promise.all (index 4)
+    at async analyzePanicIndex (/vercel/path0/server/src/services/panicIndexService.ts:346:27)
+    at async handler (/vercel/path0/api/v1/panic-index/analyze.ts:53:20)
+    at async r (/opt/rust/nodejs.js:2:16316)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:2:12267)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:17:14507) {
+  statusCode: 500,
+  response: {
+    CodeN: 0,
+    Code: 'ErrTooManyRequests',
+    Message: '[临时限流] 请求过于频繁，请稍后重试, request id: 202608201833002CB56458DCDF8BB3CFF4'
+  }
+}
+2026-08-20 10:33:00.648 [error] Search error for query "双英集团 资讯 观点": eT [APIError]: Search failed: [object Object]
+    at ek.search (file:///var/task/node_modules/.pnpm/coze-coding-dev-sdk@0.7.24_openai@6.16.0_ws@8.19.0_zod@4.3.6__ws@8.19.0/node_modules/coze-coding-dev-sdk/dist/esm/131.mjs:1:23201)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async searchPlatformComments (/vercel/path0/server/src/services/panicIndexService.ts:183:26)
+    at async Promise.all (index 7)
+    at async analyzePanicIndex (/vercel/path0/server/src/services/panicIndexService.ts:346:27)
+    at async handler (/vercel/path0/api/v1/panic-index/analyze.ts:53:20)
+    at async r (/opt/rust/nodejs.js:2:16316)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:2:12267)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:17:14507) {
+  statusCode: 500,
+  response: {
+    CodeN: 0,
+    Code: 'ErrTooManyRequests',
+    Message: '[临时限流] 请求过于频繁，请稍后重试, request id: 202608201833004CD80B2961D9D118E2D8'
+  }
+}
+2026-08-20 10:33:00.680 [error] Search error for query "双英集团 讨论 评价": eT [APIError]: Search failed: [object Object]
+    at ek.search (file:///var/task/node_modules/.pnpm/coze-coding-dev-sdk@0.7.24_openai@6.16.0_ws@8.19.0_zod@4.3.6__ws@8.19.0/node_modules/coze-coding-dev-sdk/dist/esm/131.mjs:1:23201)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async searchPlatformComments (/vercel/path0/server/src/services/panicIndexService.ts:183:26)
+    at async Promise.all (index 0)
+    at async analyzePanicIndex (/vercel/path0/server/src/services/panicIndexService.ts:346:27)
+    at async handler (/vercel/path0/api/v1/panic-index/analyze.ts:53:20)
+    at async r (/opt/rust/nodejs.js:2:16316)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:2:12267)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:17:14507) {
+  statusCode: 500,
+  response: {
+    CodeN: 0,
+    Code: 'ErrTooManyRequests',
+    Message: '[临时限流] 请求过于频繁，请稍后重试, request id: 20260820183300BAD09B75A3E9F77CA945'
+  }
+}
+2026-08-20 10:33:00.699 [error] Search error for query "双英集团 分析 观点": eT [APIError]: Search failed: [object Object]
+    at ek.search (file:///var/task/node_modules/.pnpm/coze-coding-dev-sdk@0.7.24_openai@6.16.0_ws@8.19.0_zod@4.3.6__ws@8.19.0/node_modules/coze-coding-dev-sdk/dist/esm/131.mjs:1:23201)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async searchPlatformComments (/vercel/path0/server/src/services/panicIndexService.ts:183:26)
+    at async Promise.all (index 14)
+    at async analyzePanicIndex (/vercel/path0/server/src/services/panicIndexService.ts:346:27)
+    at async handler (/vercel/path0/api/v1/panic-index/analyze.ts:53:20)
+    at async r (/opt/rust/nodejs.js:2:16316)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:2:12267)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:17:14507) {
+  statusCode: 500,
+  response: {
+    CodeN: 0,
+    Code: 'ErrTooManyRequests',
+    Message: '[临时限流] 请求过于频繁，请稍后重试, request id: 20260820183300CF0C968AECA1360786A8'
+  }
+}
+2026-08-20 10:33:00.701 [error] Search error for query "双英集团 股票 看法 走势": eT [APIError]: Search failed: [object Object]
+    at ek.search (file:///var/task/node_modules/.pnpm/coze-coding-dev-sdk@0.7.24_openai@6.16.0_ws@8.19.0_zod@4.3.6__ws@8.19.0/node_modules/coze-coding-dev-sdk/dist/esm/131.mjs:1:23201)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async searchPlatformComments (/vercel/path0/server/src/services/panicIndexService.ts:183:26)
+    at async Promise.all (index 1)
+    at async analyzePanicIndex (/vercel/path0/server/src/services/panicIndexService.ts:346:27)
+    at async handler (/vercel/path0/api/v1/panic-index/analyze.ts:53:20)
+    at async r (/opt/rust/nodejs.js:2:16316)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:2:12267)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:17:14507) {
+  statusCode: 500,
+  response: {
+    CodeN: 0,
+    Code: 'ErrTooManyRequests',
+    Message: '[临时限流] 请求过于频繁，请稍后重试, request id: 20260820183300E71FFD271885496F29BB'
+  }
+}
+2026-08-20 10:33:00.738 [error] Search error for query "双英集团 股票 看法 观点": eT [APIError]: Search failed: [object Object]
+    at ek.search (file:///var/task/node_modules/.pnpm/coze-coding-dev-sdk@0.7.24_openai@6.16.0_ws@8.19.0_zod@4.3.6__ws@8.19.0/node_modules/coze-coding-dev-sdk/dist/esm/131.mjs:1:23201)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async searchPlatformComments (/vercel/path0/server/src/services/panicIndexService.ts:183:26)
+    at async Promise.all (index 4)
+    at async analyzePanicIndex (/vercel/path0/server/src/services/panicIndexService.ts:346:27)
+    at async handler (/vercel/path0/api/v1/panic-index/analyze.ts:53:20)
+    at async r (/opt/rust/nodejs.js:2:16316)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:2:12267)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:17:14507) {
+  statusCode: 500,
+  response: {
+    CodeN: 0,
+    Code: 'ErrTooManyRequests',
+    Message: '[临时限流] 请求过于频繁，请稍后重试, request id: 2026082018330097E053B1D2B69F03D58B'
+  }
+}
+2026-08-20 10:33:00.738 [error] Search error for query "双英集团 股票 看法 观点": eT [APIError]: Search failed: [object Object]
+    at ek.search (file:///var/task/node_modules/.pnpm/coze-coding-dev-sdk@0.7.24_openai@6.16.0_ws@8.19.0_zod@4.3.6__ws@8.19.0/node_modules/coze-coding-dev-sdk/dist/esm/131.mjs:1:23201)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async searchPlatformComments (/vercel/path0/server/src/services/panicIndexService.ts:183:26)
+    at async Promise.all (index 16)
+    at async analyzePanicIndex (/vercel/path0/server/src/services/panicIndexService.ts:346:27)
+    at async handler (/vercel/path0/api/v1/panic-index/analyze.ts:53:20)
+    at async r (/opt/rust/nodejs.js:2:16316)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:2:12267)
+    at async Server.<anonymous> (/opt/rust/nodejs.js:17:14507) {
+  statusCode: 500,
+  response: {
+    CodeN: 0,
+    Code: 'ErrTooManyRequests',
+    Message: '[临时限流] 请求过于频繁，请稍后重试, request id: 20260820183300C83BFBFD57EFD164307A'
+  }
+}

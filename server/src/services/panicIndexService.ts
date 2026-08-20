@@ -4,6 +4,7 @@ import { fetchMarketIndicators, calculateMarketPanicScore, type MarketIndicators
 import { analyzeInstitutionalReports, type InstitutionalAnalysis } from "./institutionalAnalysisService.js";
 import { analyzeFundFlow, type FundFlowAnalysis } from "./fundFlowService.js";
 import { searchCrisisIndicators, type CrisisIndicator } from "./crisisIndicatorService.js";
+import { pLimit, withRetry } from "../utils/rateLimit.js";
 
 export interface PlatformComment {
   platform: string;
@@ -180,8 +181,8 @@ async function searchPlatformComments(
       }
       
       try {
-        const response = await client.advancedSearch(query, options);
-        
+        const response = await withRetry(() => client.advancedSearch(query, options), 2, 1500);
+
         if (!response.web_items || response.web_items.length === 0) continue;
 
         for (const item of response.web_items) {
@@ -339,11 +340,11 @@ export async function analyzePanicIndex(
   market?: number,
   forwardHeaders?: Record<string, string>
 ): Promise<PanicIndexResult> {
-  // Step 1: Search comments from all platforms in parallel (with 20s timeout each)
-  const searchPromises = PLATFORMS.map((platform) =>
+  // Step 1: Search comments from all platforms with limited concurrency (avoid rate limit)
+  const searchTasks = PLATFORMS.map((platform) => () =>
     withTimeout(searchPlatformComments(stockName, platform, forwardHeaders), 20000, [])
   );
-  const platformResults = await Promise.all(searchPromises);
+  const platformResults = await pLimit(searchTasks, 4);
 
   // Step 2: Collect all comments
   const allComments: PlatformComment[] = [];

@@ -1,5 +1,6 @@
 import { SearchClient, Config as SearchConfig } from "coze-coding-dev-sdk";
 import { LLMClient, Config as LLMConfig } from "coze-coding-dev-sdk";
+import { withRetry } from "../utils/rateLimit.js";
 
 export interface MarketIndicators {
   marginBalance: {
@@ -96,11 +97,10 @@ async function fetchLimitUpDown(customHeaders?: Record<string, string>): Promise
     const config = new SearchConfig();
     const client = new SearchClient(config, customHeaders);
 
-    const response = await client.advancedSearch("今日 A 股涨停跌停数量", {
-      count: 5,
-      timeRange: "7d",
-      needSummary: false,
-    });
+    const response = await withRetry(
+      () => client.advancedSearch("今日 A 股涨停跌停数量", { count: 5, timeRange: "7d", needSummary: false }),
+      2, 1500
+    );
 
     if (response.web_items && response.web_items.length > 0) {
       const text = response.web_items.map((item) => `${item.title} ${item.snippet}`).join(" ");
@@ -130,11 +130,10 @@ async function fetchNewAccounts(customHeaders?: Record<string, string>): Promise
     const client = new SearchClient(config, customHeaders);
 
     // 搜索上交所最新月度开户数据
-    const response = await client.advancedSearch("上交所 月度 新开户 投资者 账户", {
-      count: 8,
-      timeRange: "3m",
-      needSummary: false,
-    });
+    const response = await withRetry(
+      () => client.advancedSearch("上交所 月度 新开户 投资者 账户", { count: 8, timeRange: "3m", needSummary: false }),
+      2, 1500
+    );
 
     if (response.web_items && response.web_items.length > 0) {
       const text = response.web_items.map((item) => `${item.title} ${item.snippet}`).join(" ");

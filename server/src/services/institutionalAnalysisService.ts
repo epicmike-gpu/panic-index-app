@@ -1,5 +1,6 @@
 import { SearchClient, Config as SearchConfig, HeaderUtils as SearchHeaderUtils } from "coze-coding-dev-sdk";
 import { LLMClient, Config as LLMConfig, HeaderUtils as LLMHeaderUtils } from "coze-coding-dev-sdk";
+import { pLimit, withRetry } from "../utils/rateLimit.js";
 
 /**
  * 金融机构账号分析服务
@@ -60,19 +61,18 @@ async function searchInstitutionalReports(
   const config = new SearchConfig();
   const client = new SearchClient(config, forwardHeaders);
 
-  // 并行搜索所有关键词
-  const searchPromises = allKeywords.map((keyword) =>
-    client.advancedSearch(keyword, {
-      count: 10,
-      needSummary: false,
-      timeRange: "7d",
-    }).catch((err: Error) => {
+  // 限制并发搜索所有关键词（避免限流），带限流重试
+  const searchTasks = allKeywords.map((keyword) => () =>
+    withRetry(
+      () => client.advancedSearch(keyword, { count: 10, needSummary: false, timeRange: "7d" }),
+      2, 1500
+    ).catch((err: Error) => {
       console.error(`搜索失败 [${keyword}]:`, err);
       return null;
     }),
   );
 
-  const results = await Promise.all(searchPromises);
+  const results = await pLimit(searchTasks, 3);
 
   // 处理搜索结果
   for (const result of results) {
