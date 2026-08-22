@@ -1,0 +1,14 @@
+# 香港服务器反向代理配置（Caddy）
+# 用法：把下面的 api.yourdomain.com 换成你自己的域名
+# Caddy 会自动申请并续期 HTTPS 证书（要求域名 DNS 已指向服务器 IP）
+
+api.yourdomain.com {
+	reverse_proxy https://panic-index-app.vercel.app {
+		# Vercel 需要根据 Host 头路由到正确项目，必须覆盖
+		header_up Host panic-index-app.vercel.app
+		header_up X-Forwarded-For {remote_host}
+	}
+
+	# analyze 接口较慢（最长约 60s），避免被过早截断
+	# Caddy 默认对响应流式转发，一般无需额外超时配置
+}
