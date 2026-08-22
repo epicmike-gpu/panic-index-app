@@ -14,13 +14,13 @@
         "simulator": true
       },
       "env": {
-        "EXPO_PUBLIC_BACKEND_BASE_URL": "https://panic-index-app.vercel.app"
+        "EXPO_PUBLIC_BACKEND_BASE_URL": "https://www.panicindexapp.space"
       }
     },
     "production": {
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_BACKEND_BASE_URL": "https://panic-index-app.vercel.app"
+        "EXPO_PUBLIC_BACKEND_BASE_URL": "https://www.panicindexapp.space"
       }
     }
   },
